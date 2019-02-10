@@ -8,7 +8,7 @@ TerrainShaderConversion converter = new TerrainShaderConversion(String pbrAssetP
 
 2.) call this method to register a roughness and metallic value to the texture, as well as the desired texture scale
    (aliveVar can be ignored)
- public void registerPBRParamsForTexture(String texKey, int aliveVar, float rough, float metal, float scale)
+   > public void registerPBRParamsForTexture(String texKey, int aliveVar, float rough, float metal, float scale)
  
  example: registerPBRParamsForTexture("Textures/ancientRoad1.jpg", 0, .99f, .09f, 32f);
  
