@@ -1,0 +1,59 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'org.junit.platform:junit-platform-gradle-plugin:1.0.0-RC2'
+    }
+}
+
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'idea'
+
+version='0.0.1'
+group='com.aaaagames'
+
+
+compileTestJava {
+    sourceCompatibility = 1.8
+    targetCompatibility = 1.8
+    options.compilerArgs += '-parameters'
+}
+
+
+repositories {
+    mavenLocal()
+    jcenter()
+    
+    // Temporary until JME jars are in jcenter()   
+    maven { url "http://dl.bintray.com/jmonkeyengine/org.jmonkeyengine" }
+}
+
+// Make sure the build file declares what it actually imports
+configurations.compile {
+    transitive = false
+}
+
+// In this section you declare the dependencies for your production and test code
+dependencies {
+
+    compile "org.jmonkeyengine:jme3-effects:3.2.+"
+    compile "org.jmonkeyengine:jme3-core:3.2.+" 
+    compile "org.jmonkeyengine:jme3-terrain:3.2.+" 
+	
+    //compile "com.jme3:jme3-core:unknown" 
+
+}
+
+
+
+// To specify a license in the pom:
+install {
+    repositories.mavenInstaller {
+        pom.version = version
+        pom.artifactId = 'sim-arboreal'
+    }
+}
+
+
