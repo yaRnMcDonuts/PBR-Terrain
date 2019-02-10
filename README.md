@@ -11,8 +11,19 @@ PBR Terrain shader and a converter class for generating PBR material based off o
    > public void registerPBRParamsForTexture(String texKey, int aliveVar, float rough, float metal, float scale)
  
  example:
-   >registerPBRParamsForTexture("Textures/ancientRoad1.jpg", 0, .99f, .09f, 32f);
+   > converter.registerPBRParamsForTexture("Textures/ancientRoad1.jpg", 0, .99f, .09f, 32f);
  
 3.) convert your terrin!
 
    >converter.convertToPBROnLoad(terrain, assetManager);
+
+
+
+
+
+   >TerrainShaderConversion converter = new TerrainShaderConversion(String pbrAssetPath, String phongAssetPath)
+   
+   > //register textures...
+   > converter.registerPBRParamsForTexture("Textures/ancientRoad1.jpg", 0, .99f, .09f, 32f);
+   
+      >converter.convertToPBROnLoad(terrain, assetManager);
