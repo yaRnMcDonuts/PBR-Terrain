@@ -2,7 +2,6 @@
 #import "Common/ShaderLib/PBR.glsllib"
 #import "Common/ShaderLib/Parallax.glsllib"
 #import "Common/ShaderLib/Lighting.glsllib"
-#import "MatDefs/ShaderLib/AfflictionLib.glsllib"
 
 
 
@@ -10,18 +9,6 @@
     uniform sampler2D m_AfflictionTexture;
 #endif
 
-uniform int m_PlaguedMapScale;
-#ifdef PLAGUEDALBEDOMAP
-    uniform sampler2D m_PlaguedAlbedoMap;
-#endif
-
-#ifdef PLAGUEDNORMALMAP
-    uniform sampler2D m_PlaguedNormalMap;
-#endif
-
-#ifdef PLAGUEDROUGHNESSMETALLICMAP
-    uniform sampler2D m_PlaguedRoughnessMetallicMap;
-#endif
 
 #ifdef TILEWIDTH
     uniform float m_TileWidth;
@@ -124,7 +111,7 @@ void main(){
     vec3 viewDir = normalize(g_CameraPosition - wPosition);
 
     vec3 norm = normalize(wNormal);
-    #if defined(NORMALMAP) || defined(PARALLAXMAP) || defined(PLAGUEDNORMALMAP)
+    #if defined(NORMALMAP) || defined(PARALLAXMAP)
         vec3 tan = normalize(wTangent.xyz);
         mat3 tbnMat = mat3(tan, wTangent.w * cross( (norm), (tan)), norm);
     #endif
@@ -159,41 +146,6 @@ void main(){
     #endif
 
     float alpha = albedo.a;
-
-
-
-    vec3 afflictionVector = vec3(1.0, 0.0, 0.0);
-
-    #if defined(AFFLICTIONTEXTURE) && defined(TILEWIDTH) && defined(TILELOCATION)
-        vec2 tileCoords;
-        float xPos, zPos;
-
-        vec3 locInTile = (wPosition - m_TileLocation);
-
-         locInTile += vec3(m_TileWidth/2, 0, m_TileWidth/2);
-
-         xPos = (locInTile.x / m_TileWidth);
-         zPos = 1 - (locInTile.z / m_TileWidth);
-        
-        tileCoords = vec2(xPos, zPos);
-
-        afflictionVector = texture2D(m_AfflictionTexture, tileCoords).rgb;
-
-    #endif
-
-    float livelinessValue = afflictionVector.r;
-    float plaguedValue = afflictionVector.g;
-//    float plagueddValue = afflictionVector.g; // idea maybe? 
-//    float windValue = afflictionVector.b; // idea maybe? 
-
-
-  
-float deathVar = (1.0 - (livelinessValue));
-
-    albedo = alterStoneLiveliness(albedo, livelinessValue);
-
-
-    
 
     
 
@@ -239,42 +191,7 @@ float deathVar = (1.0 - (livelinessValue));
     #endif
 
 
-    //APPLY PLAGUEDNESS TO THE PIXEL
-
-    vec4 plaguedAlbedo;    
-    vec2 newScaledCoords = mod(wPosition.xz / m_PlaguedMapScale, 1);
-    #ifdef PLAGUEDALBEDOMAP
-        plaguedAlbedo = texture2D(m_PlaguedAlbedoMap, newScaledCoords);
-    #else
-        plaguedAlbedo = vec4(0.55, 0.8, 0.00, 1.0);
-    #endif
-
-    vec3 plaguedNormal;
-    #ifdef PLAGUEDNORMALMAP
-        plaguedNormal = texture2D(m_PlaguedNormalMap, newScaledCoords).rgb;
-        plaguedNormal = normalize((plaguedNormal.xyz * vec3(2.0) - vec3(1.0)));
-        #if defined(NORMALMAP)
-      //      plaguedNormal = normalize(tbnMat * plaguedNormal);
-        #endif
-    #else
-        plaguedNormal = norm; 
-
-    #endif
-
-    vec4 plaguedGlowColor = vec4(0.87, 0.95, 0.1, 1.0);
-
-    float noiseHash = getStaticNoiseVar0(wPosition, plaguedValue);
-    Roughness = alterPlaguedRoughness(plaguedValue, Roughness, 0.75, noiseHash * plaguedAlbedo.a);
-    Metallic = alterPlaguedMetallic(plaguedValue, Metallic,  0.2, noiseHash * plaguedAlbedo.a);//use the alpha channel of albedo map to alter opcaity for the matching plagued normals, roughness, and metalicness at each pixel
-    albedo = alterPlaguedColor(plaguedValue, albedo, plaguedAlbedo, noiseHash * plaguedAlbedo.a);
-    normal = alterPlaguedNormals(plaguedValue, normal, plaguedNormal, noiseHash);
-    plaguedGlowColor = alterPlaguedGlow(plaguedValue, plaguedGlowColor, noiseHash);
-
-    plaguedGlowColor = vec4(0);
-
-
-    //reassigns alpha's value if the pixel wasn't already discarded
-    alpha = max(albedo.a, alpha);
+  
     
 
     float specular = 0.5;
@@ -323,8 +240,6 @@ float deathVar = (1.0 - (livelinessValue));
        #endif
        specularColor.rgb *= lightMapColor;
     #endif
-
-    ao = alterPlaguedAo(plaguedValue, ao, vec3(1.0), noiseHash); // alter the AO map for plagued values
 
     float ndotv = max( dot( normal, viewDir ),0.0);
     for( int i = 0;i < NB_LIGHTS; i+=3){
@@ -393,14 +308,7 @@ float deathVar = (1.0 - (livelinessValue));
             vec4 emissive = m_Emissive;
         #endif
         
-        if(livelinessValue > 0.1){
-            emissive *= livelinessValue *livelinessValue;
-
-        }
-        else{ //ignore the base emissiveMap for texture below half death
-            emissive *= .01;
-        }
-
+      
 
         gl_FragColor += emissive * pow(emissive.a, m_EmissivePower) * m_EmissiveIntensity;
     #endif
