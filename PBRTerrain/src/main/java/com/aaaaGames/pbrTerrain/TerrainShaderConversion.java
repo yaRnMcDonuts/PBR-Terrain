@@ -132,7 +132,7 @@ public class TerrainShaderConversion implements ConversionRelationship{
         
     }
     
-    private void registerPBRParamsForTexture(String texKey, int aliveVar, float rough, float metal, float scale){
+    public void registerPBRParamsForTexture(String texKey, int aliveVar, float rough, float metal, float scale){
         textureAliveValues.put(texKey, aliveVar);
         textureRoughnessValues.put(texKey, rough);
         textureMetallicValues.put(texKey, metal);
