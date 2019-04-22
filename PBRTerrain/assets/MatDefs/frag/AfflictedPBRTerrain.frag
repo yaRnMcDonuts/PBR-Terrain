@@ -615,7 +615,7 @@ vec3 norm;
     uniform float m_StaticSunIntensity;
 #endif
 
-invariant float brightestPointLight = 1.0;
+float brightestPointLight = 1.0;
 
 #ifdef PROBE_COLOR
     uniform vec4 m_ProbeColor;
