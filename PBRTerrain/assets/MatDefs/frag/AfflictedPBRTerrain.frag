@@ -493,7 +493,7 @@ vec3 norm;
         #ifdef ALBEDOMAP_0   
                         //NOTE! the old (phong) terrain shaders do not have an "_0" for the first diffuse map, it is just "DiffuseMap"
             #ifdef NORMALMAP_0
-                TRI_BLEND_NORMAL(_0,  alphaBlend.r)
+                TRI_BLEND_NORMAL(_0,  alphaBlend.r, wVertex, blending)
             #else
                 TRI_BLEND(_0,  alphaBlend.r, wVertex, blending)
             #endif
