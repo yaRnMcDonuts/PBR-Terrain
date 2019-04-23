@@ -8,11 +8,11 @@ uniform vec4 g_LightData[NB_LIGHTS];
 
 varying vec3 wPosition;
 
-//#if NB_PROBES >= 1
+#if NB_PROBES >= 1
   uniform samplerCube g_PrefEnvMap;
   uniform vec3 g_ShCoeffs[9];
   uniform mat4 g_LightProbeData;
-//#endif
+#endif
 #if NB_PROBES >= 2
   uniform samplerCube g_PrefEnvMap2;
   uniform vec3 g_ShCoeffs2[9];
@@ -956,7 +956,7 @@ plaguedGlowColor = vec4(0);
     
     
 
-   // #if NB_PROBES >= 1
+    #if NB_PROBES >= 1
         vec3 color1 = vec3(0.0);
         vec3 color2 = vec3(0.0);
         vec3 color3 = vec3(0.0);
@@ -996,8 +996,7 @@ plaguedGlowColor = vec4(0);
         gl_FragColor.rgb += color1 * clamp(weight1,0.0,1.0) + color2 * clamp(weight2,0.0,1.0) + color3 * clamp(weight3,0.0,1.0);
 
 
-     //   gl_FragColor.rgb = vec3(1.0);
- //   #endif
+    #endif
  
     #if defined(EMISSIVE) || defined (EMISSIVEMAP)
         #ifdef EMISSIVEMAP
