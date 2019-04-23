@@ -1,10 +1,10 @@
 Important Notes:
 
-# - To generate a PBR Terrain with code, see this example
+# To generate a PBR Terrain with code, see this example
 https://github.com/yaRnMcDonuts/AfflictedPbrTerrainConverter/blob/master/PBRTerrain/TestPBRTerrain.java#L59
 
 
-# - To use the AfflictedPBRTerrain shader with an existing Terrain loaded from a j3o file (i.e. terrains created with the SDK), you can use the TerrainShaderConversion object in order to register roughness and metallic values to each texture slot, and finally generate a new PBR material for your Terrain.
+# To use the AfflictedPBRTerrain shader with an existing Terrain loaded from a j3o file (i.e. terrains created with the SDK), you can use the TerrainShaderConversion object in order to register roughness and metallic values to each texture slot, and finally generate a new PBR material for your Terrain.
 
 
 1.) Initiate a new TerrainShaderConversion object
