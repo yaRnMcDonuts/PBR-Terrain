@@ -1,4 +1,4 @@
-package mygame;
+package com.aaaaGames.pbrTerrain.test;
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.TextureKey;
 import com.jme3.bounding.BoundingBox;
