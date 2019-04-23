@@ -615,7 +615,7 @@ vec3 norm;
     uniform float m_StaticSunIntensity;
 #endif
 
-float brightestPointLight = 1.0;
+float brightestPointLight = 0.0;
 
 #ifdef PROBE_COLOR
     uniform vec4 m_ProbeColor;
@@ -892,13 +892,11 @@ float sunBrightness = 1.0;
     float factoredTimeOfDayScale = timeOfDayScale;
     #ifdef STATIC_SUN_INTENSITY
         indoorSunLightExposure = m_StaticSunIntensity;
-        brightestPointLight = 0.0;
     #endif
     #ifdef USE_VERTEX_COLORS_AS_SUN_INTENSITY
         indoorSunLightExposure = vertColors.r * indoorSunLightExposure;             //use R channel of vertexColors... *^.
-        brightestPointLight = 0.0;
+        
     #endif
-    
     
     
     factoredTimeOfDayScale *= indoorSunLightExposure;  //timeOfDayScale (aka a float to scale lightProbe at night vs day) is only as effective as the indooSunLightExposure
