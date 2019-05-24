@@ -8,8 +8,9 @@ https://github.com/yaRnMcDonuts/AfflictedPbrTerrainConverter/blob/master/PBRTerr
 
 
 1.) Initiate a new TerrainShaderConversion object
-
-   >TerrainShaderConversion converter = new TerrainShaderConversion(String pbrAssetPath, String phongAssetPath)
+   >String pbrAssetPath = "MatDefs/shaders/AfflictedPBRTerrain.j3md";
+   >String phongAssetPath = "MatDefs/shaders/TerrainLighting.j3md";
+   >TerrainShaderConversion converter = new TerrainShaderConversion(pbrAssetPath, phongAssetPath)
 
 
 2.) Use this method to register a roughness and metallic value to the texture, as well as the desired texture scale
