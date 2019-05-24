@@ -6,6 +6,8 @@
 
 uniform vec4 g_LightData[NB_LIGHTS];
 
+uniform vec4 g_AmbientLightColor;
+
 varying vec3 wPosition;
 
 #if NB_PROBES >= 1
@@ -993,6 +995,13 @@ plaguedGlowColor = vec4(0);
             weight2 /= weightSum;
             weight3 /= weightSum;
         #endif
+        
+        #if USE_AMBIENT_LIGHT
+            color1.rgb *= g_AmbientLightColor.rgb;
+            color2.rgb *= g_AmbientLightColor.rgb;
+            color3.rgb *= g_AmbientLightColor.rgb;
+        #endif
+        
         gl_FragColor.rgb += color1 * clamp(weight1,0.0,1.0) + color2 * clamp(weight2,0.0,1.0) + color3 * clamp(weight3,0.0,1.0);
 
 
