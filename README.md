@@ -8,8 +8,10 @@ https://github.com/yaRnMcDonuts/AfflictedPbrTerrainConverter/blob/master/PBRTerr
 
 
 1.) Initiate a new TerrainShaderConversion object
-   >String pbrAssetPath = "MatDefs/shaders/AfflictedPBRTerrain.j3md";
+   >String pbrAssetPath = "MatDefs/shaders/AfflictedPBRTerrain.j3md" 
    >String phongAssetPath = "MatDefs/shaders/TerrainLighting.j3md";
+   
+   
    >TerrainShaderConversion converter = new TerrainShaderConversion(pbrAssetPath, phongAssetPath)
 
 
