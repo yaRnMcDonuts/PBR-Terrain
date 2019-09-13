@@ -60,10 +60,6 @@ public class TexturePacker {
         
   
         
-      
-        
-     //   app.getGuiNode().attachChild(window);
-        
     }
    
 
