@@ -1,4 +1,4 @@
-package Utilities.TextureUtilities;
+package com.aaaaGames.pbrTerrain;
 
 /*
  * To change this license header, choose License Headers in Project Properties.
