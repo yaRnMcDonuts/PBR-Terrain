@@ -214,11 +214,10 @@ public class TexturePacker {
             
              if(savePath != null){
                  File file = new File(assetDirectory + savePath);
-//                if(!file.exists()){
-//                    file.mkdirs();                    
-//                }
+                if(!file.exists()){
+                    file.mkdirs();                    
+                }
 
-           //     imageWriter.writeImage(metallicRoughnessAoEmissiveMap.getImage(), file);
                 ImageIO.write(ImageWriter.getARGB8ImageFrom(metallicRoughnessAoEmissiveMap.getImage()), "png", file);
             }
              
@@ -272,15 +271,12 @@ public class TexturePacker {
             
             
              if(savePath != null){
-                
-            //    savePng(savePath, metallicRoughnessAoEmissiveMap.getImage());
                 File file = new File(assetDirectory + savePath);
                 if(!file.exists()){
                     file.mkdirs();                    
                 }
                 
                 ImageIO.write(ImageWriter.getARGB8ImageFrom(normalParallaxMap.getImage()), "png", file);
-              //  imageWriter.writeImage(normalParallaxMap.getImage(), file);
             }
              
              
