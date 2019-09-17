@@ -1,10 +1,5 @@
 package com.aaaaGames.pbrTerrain;
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 
 import com.jme3.app.SimpleApplication;
 import com.jme3.asset.AssetManager;
@@ -28,7 +23,7 @@ import javax.imageio.ImageIO;
  */
 public class TexturePacker {
     
-    private Format imageFormat = Image.Format.RGB8; //default to not use the alpha channel - change tp RGBA8 and use ColorSace.linear if you want to pack alpha as well
+    private Format imageFormat = Image.Format.RGBA8;
     public void setImageFormat(Format imgFormat){ imageFormat = imgFormat; }
     
     public int[] mipMapSizes = null;
@@ -149,6 +144,7 @@ public class TexturePacker {
                         newRaster.setPixel(x, y, newCol);
                         
                         
+                        
 
                 }
             }
@@ -230,7 +226,7 @@ public class TexturePacker {
 //                }
 
            //     imageWriter.writeImage(metallicRoughnessAoEmissiveMap.getImage(), file);
-                ImageIO.write(ImageWriter.getRGB8ImageFrom(metallicRoughnessAoEmissiveMap.getImage()), "png", file);
+                ImageIO.write(ImageWriter.getARGB8ImageFrom(metallicRoughnessAoEmissiveMap.getImage()), "png", file);
             }
              
             return metallicRoughnessAoEmissiveMap;
@@ -278,11 +274,7 @@ public class TexturePacker {
                 packChannelFromTo(normalMap.getImage(), TextureChannel.R, newPackedImage, TextureChannel.R, colorSpace);
                 packChannelFromTo(normalMap.getImage(), TextureChannel.G, newPackedImage, TextureChannel.G, colorSpace);
                 packChannelFromTo(normalMap.getImage(), TextureChannel.B, newPackedImage, TextureChannel.B, colorSpace);                
-            }            
-            if(parallaxMap != null){ //a
-                packChannelFromTo(parallaxMap.getImage(), TextureChannel.R, newPackedImage, TextureChannel.A, colorSpace);                
-            }
-            
+            }               
             
             
             
@@ -294,7 +286,7 @@ public class TexturePacker {
                     file.mkdirs();                    
                 }
                 
-                ImageIO.write(ImageWriter.getRGB8ImageFrom(normalParallaxMap.getImage()), "png", file);
+                ImageIO.write(ImageWriter.getARGB8ImageFrom(normalParallaxMap.getImage()), "png", file);
               //  imageWriter.writeImage(normalParallaxMap.getImage(), file);
             }
              
@@ -334,16 +326,8 @@ public class TexturePacker {
         } finally {
             out.close();
         }             
-    }
-
-            
-      
-  
-      
-    
-      
-          
-      
+    }      
   
 
 }
+
