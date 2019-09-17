@@ -38,17 +38,11 @@ public class TexturePacker {
         B,
         A
     }
-    
-    private ImageWriter imageWriter;
-    
-    
     float screenHeight, screenWidth;
      
     private String assetDirectory;
     
     public TexturePacker(SimpleApplication app, String assetDirectory){
-        imageWriter = new ImageWriter();
-        
         this.assetDirectory = assetDirectory;
         this.app = app;
         assetManager = app.getAssetManager();
