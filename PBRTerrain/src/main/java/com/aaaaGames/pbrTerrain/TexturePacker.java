@@ -32,15 +32,14 @@ public class TexturePacker {
     private SimpleApplication app;
     private AssetManager assetManager;
     
+    private String assetDirectory;
+    
     public enum TextureChannel{
         R,
         G,
         B,
         A
     }
-    float screenHeight, screenWidth;
-     
-    private String assetDirectory;
     
     public TexturePacker(SimpleApplication app, String assetDirectory){
         this.assetDirectory = assetDirectory;
