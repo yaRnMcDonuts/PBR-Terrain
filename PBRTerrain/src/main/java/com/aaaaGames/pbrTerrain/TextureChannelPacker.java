@@ -21,7 +21,7 @@ import javax.imageio.ImageIO;
  *
  * @author ryan
  */
-public class TexturePacker {
+public class TextureChannelPacker {
     
     private Format imageFormat = Image.Format.RGBA8;
     public void setImageFormat(Format imgFormat){ imageFormat = imgFormat; }
@@ -41,7 +41,7 @@ public class TexturePacker {
         A
     }
     
-    public TexturePacker(SimpleApplication app, String assetDirectory){
+    public TextureChannelPacker(SimpleApplication app, String assetDirectory){
         this.assetDirectory = assetDirectory;
         this.app = app;
         assetManager = app.getAssetManager();
@@ -49,6 +49,7 @@ public class TexturePacker {
   
         
     }
+   
    
 
     
