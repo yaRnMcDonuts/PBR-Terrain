@@ -5,7 +5,6 @@ attribute vec3 inPosition;
 attribute vec3 inNormal;
 attribute vec2 inTexCoord;
 
-uniform vec4 g_AmbientLightColor; //passed to .frag for scaling light probe brightness in 3.3 compatible version of this shader.
 
 varying vec2 texCoord;
 varying vec3 wPosition;
