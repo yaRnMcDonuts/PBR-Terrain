@@ -25,6 +25,8 @@ varying vec3 wPosition;
 #endif
 
 
+uniform vec4 g_AmbientLightColor;
+
 
 
 ///TODO LIST
@@ -1076,6 +1078,13 @@ plaguedGlowColor = vec4(0);
             weight2 /= weightSum;
             weight3 /= weightSum;
         #endif
+        
+        #ifdef USE_AMBIENT_LIGHT
+            color1.rgb *= g_AmbientLightColor.rgb;
+            color2.rgb *= g_AmbientLightColor.rgb;
+            color3.rgb *= g_AmbientLightColor.rgb;
+        #endif
+        
         gl_FragColor.rgb += color1 * clamp(weight1,0.0,1.0) + color2 * clamp(weight2,0.0,1.0) + color3 * clamp(weight3,0.0,1.0);
 
 
