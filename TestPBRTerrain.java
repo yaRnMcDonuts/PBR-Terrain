@@ -56,7 +56,7 @@ public class TestPBRTerrain extends SimpleApplication {
         setupKeys();
 
         // TERRAIN TEXTURE material
-        matTerrain = new Material(assetManager, "MatDefs/shaders/AfflictedPBRTerrain.j3md");
+        matTerrain = new Material(assetManager, "MatDefs/shaders/PBRTerrain.j3md");
         
         matTerrain.setBoolean("useTriPlanarMapping", false);
         matTerrain.setVector4("ProbeColor", new Vector4f(1, 1, 1, 1));
