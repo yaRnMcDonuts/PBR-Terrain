@@ -8,14 +8,28 @@ uniform vec4 g_LightData[NB_LIGHTS];
 
 varying vec3 wPosition;
 
-#ifdef INDIRECT_LIGHTING
-//  uniform sampler2D m_IntegrateBRDF;
+//#if NB_PROBES >= 1
   uniform samplerCube g_PrefEnvMap;
-  uniform samplerCube g_IrradianceMap;
   uniform vec3 g_ShCoeffs[9];
-  uniform vec4 g_LightProbeData;
+  uniform mat4 g_LightProbeData;
+//#endif
+#if NB_PROBES >= 2
+  uniform samplerCube g_PrefEnvMap2;
+  uniform vec3 g_ShCoeffs2[9];
+  uniform mat4 g_LightProbeData2;
+#endif
+#if NB_PROBES == 3
+  uniform samplerCube g_PrefEnvMap3;
+  uniform vec3 g_ShCoeffs3[9];
+  uniform mat4 g_LightProbeData3;
 #endif
 
+
+
+
+///TODO LIST
+
+// include plaguedEmissiveColor to be multiplied by the EI channel in packedMRAoEi map
 
 
 
@@ -41,9 +55,9 @@ varying vec3 wPosition;
 
 varying vec3 vNormal;
 
-#if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7) || defined(PLAGUEDNORMALMAP)
+//#if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7) || defined(PLAGUEDNORMALMAP)
     varying vec4 wTangent;
-#endif
+//#endif
 
 
 varying vec2 texCoord;
@@ -59,6 +73,28 @@ float Roughness;
 float hour = 0;
 
 
+vec3 norm;
+
+
+
+#ifdef USE_FOG
+#import "MatDefs/ShaderLib/MaterialFog.glsllib"
+uniform vec4 m_FogColor;
+float fogDistance;
+
+uniform vec2 m_LinearFog;
+#endif
+
+#ifdef FOG_EXP
+uniform float m_ExpFog;
+#endif
+
+#ifdef FOG_EXPSQ
+uniform float m_ExpSqFog;
+#endif
+
+
+
 
 varying vec3 vPosition;
 varying vec3 vnPosition;
@@ -66,6 +102,7 @@ varying vec3 vViewDir;
 varying vec4 vLightDir;
 varying vec4 vnLightDir;
 varying vec3 lightVec;
+varying vec3 inNormal;
 
 uniform int m_AfflictionMode_0;
 uniform int m_AfflictionMode_1;
@@ -107,11 +144,14 @@ uniform float m_Metallic_10;
 uniform float m_Metallic_11;
 
 
+
+   mat3 tbnMat;
+
 #ifdef AFFLICTIONTEXTURE
     uniform sampler2D m_AfflictionTexture;
 #endif
 
-//defined for sub terrains that arent equal to each map tile size
+//defined for sub terrains that arent equal to each map tile size for optional affliction splatting
 #ifdef TILELOCATION
     uniform float m_TileWidth;
     uniform vec3 m_TileLocation;
@@ -282,6 +322,9 @@ int afflictionMode = 1;
 vec3 normal = vec3(0.5,0.5,1);
 vec3 newNormal;
 
+   
+
+
 #define DEFINE_COORD(index) vec2 coord##index = texCoord * m_AlbedoMap##index##_scale;
 
 #define BLEND(index, ab)\
@@ -290,7 +333,7 @@ vec3 newNormal;
     tempAlbedo.rgb = texture2D(m_AlbedoMap##index, coord##index).rgb;\
     tempAlbedo.rgb = alterLiveliness(tempAlbedo.rgb, livelinessValue, afflictionMode);\
     albedo.rgb = mix( albedo.rgb, tempAlbedo.rgb ,ab );\
-    normal.rgb = mix(normal.xyz, wNormal.xyz, ab);\
+    normal.rgb = mix(normal.xyz, wNormal.rgb, ab);\
     Metallic = mix(Metallic, m_Metallic##index, ab);\
     Roughness = mix(Roughness, m_Roughness##index, ab);
 
@@ -305,8 +348,9 @@ vec3 newNormal;
     albedo.rgb = mix( albedo.rgb, tempAlbedo.rgb ,ab );\
     Metallic = mix(Metallic, m_Metallic##index, ab);\
     Roughness = mix(Roughness, m_Roughness##index, ab);\
-    newNormal = texture2D(m_NormalMap##index, coord##index).xyz;\
-    normal = mix(normal, newNormal, ab);
+    tempNormal.xyz = texture2D(m_NormalMap##index, coord##index).xyz;\
+    tempNormal.rgb = mixNormals(tempNormal.rgb, wNormal);\
+    normal.rgb = mix(normal.xyz, tempNormal.xyz, ab);
 
 //BLEND METHODS FOR TRIPLANAR...  
 #define TRI_BLEND(index, ab, worldCoords, blending)\
@@ -314,11 +358,10 @@ vec3 newNormal;
     tempAlbedo = getTriPlanarBlend(worldCoords, blending, m_AlbedoMap##index, m_AlbedoMap##index##_scale);\
     tempAlbedo.rgb = alterLiveliness(tempAlbedo.rgb, livelinessValue, afflictionMode);\
     albedo = mix( albedo, tempAlbedo ,ab );\
+    normal.rgb = mix(normal.rgb, wNormal.rgb, ab);\
     Metallic = mix(Metallic, m_Metallic##index, ab);\
-    normal.rgb = mix(normal.xyz, wNormal.xyz, ab);\
     Roughness = mix(Roughness, m_Roughness##index, ab);    
 
-   
 
 #define TRI_BLEND_NORMAL(index, ab, worldCoords, blending)\
     afflictionMode = m_AfflictionMode##index;\
@@ -326,6 +369,7 @@ vec3 newNormal;
     tempNormal.rgb = getTriPlanarBlend(worldCoords, blending, m_NormalMap##index, m_AlbedoMap##index##_scale).rgb;\
     tempAlbedo.rgb = alterLiveliness(tempAlbedo.rgb, livelinessValue, afflictionMode);\
     albedo.rgb = mix( albedo.rgb, tempAlbedo.rgb ,ab );\
+    tempNormal.rgb = mixNormals(tempNormal.rgb, wNormal);\
     normal.rgb = mix(normal.xyz, tempNormal.xyz, ab);\
     Metallic = mix(Metallic, m_Metallic##index, ab);\
     Roughness = mix(Roughness, m_Roughness##index, ab);
@@ -461,9 +505,6 @@ vec4 calculateAlbedoBlend(in vec2 texCoord) {
     return albedo;
   }
 
-
-   mat3 tbnMat;
-vec3 norm;
 
 
 // TRI PLANAR ALPHA MAP TEXTURES_ _ _ _    \/
@@ -606,23 +647,35 @@ vec3 norm;
 
 
 
-
+//sun intensity is essentially a secondary AO value that can be painted per-vertex in the red channel of the 
+// vertex colors, or it can be set as a static value for an entire material
 #if defined(USE_VERTEX_COLORS_AS_SUN_INTENSITY) 
-    varying vec4 vertColors; //probably wont happen for rock tower, but leave code here so its consistent to afflictedPbr.frag and just in case you make a custom rock tower with vert colors ever
+    varying vec4 vertColors; 
 #endif
 
 #ifdef STATIC_SUN_INTENSITY
     uniform float m_StaticSunIntensity;
 #endif
-
+//sun intensity AO value is only applied to the directional light, not to point lights, so it is important to track if the 
+//sun is more/less bright than the brightest point light to determine how the light probe's ambient light should be scaled later on..
 float brightestPointLight = 0.0;
 
+
+//used for scaling a probes color, and for scaling a probe's brightness in 3.2 - note that in 3.3, ambient light
+//is changed to now affect the probes brightness for day/night.. but this can still be useful for color multiplying if
+// a scene needs to drastically shift colors.
 #ifdef PROBE_COLOR
     uniform vec4 m_ProbeColor;
 #endif
-
 void main(){
     
+    
+    
+     #ifdef USE_FOG
+        fogDistance = distance(g_CameraPosition, wPosition.xyz);
+        
+     //    fogDistance = distance(g_CameraPosition, wPosition.xyz);
+    #endif
     
     float indoorSunLightExposure = 1.0;//scale this to match R channel of vertex colors
 
@@ -631,25 +684,26 @@ void main(){
     #ifdef PROBE_COLOR
             timeOfDayScale = m_ProbeColor.w; // time of day is stored in alpha value of the ProbeColor vec4. this way the rgb vec3 can be used for scaling probe color
             probeColorMult = m_ProbeColor.xyz;
+            
      #endif
-    
+     
     
     
     vec3 viewDir = normalize(g_CameraPosition - wPosition);
 
     vec3 norm = normalize(wNormal);
-    normal = norm;
+    normal.rgb = norm.rgb;
  //   norm = vec3(0.5, 0.5, 1.0);
-    #if defined(NORMALMAP_0) || defined(PARALLAXMAP) || defined(PLAGUEDNORMALMAP)
+ //   #if defined(NORMALMAP_0) || defined(PARALLAXMAP) || defined(PLAGUEDNORMALMAP)
         vec3 tan = normalize(wTangent.xyz);
    //     tbnMat = mat3(tan, wTangent.w * cross( (wNormal), (tan)), norm);
 
-      mat3 tbnMat = mat3(tan, wTangent.w * cross( (norm), (tan)), norm);
+   //   mat3 tbnMat = mat3(tan, wTangent.w * cross( (norm), (tan)), norm);
    
 
-    #endif
+ //   #endif
 
-    afflictionVector = vec4(1.0, 0.0, 0.0, 0.0);
+    afflictionVector = vec4(1.0, 0.0, 1.0, 0.0);
     #ifdef AFFLICTIONTEXTURE
     
         #ifdef TILELOCATION 
@@ -673,7 +727,6 @@ void main(){
         #else
             afflictionVector = texture2D(m_AfflictionTexture, texCoord.xy).rgba;
         #endif
-        
     #endif
 
     livelinessValue = afflictionVector.r;
@@ -691,14 +744,14 @@ void main(){
     #ifdef ALBEDOMAP_0
       #ifdef ALPHAMAP
         #ifdef TRI_PLANAR_MAPPING
-             blending = abs( wNormal );
+             blending = abs( norm );
                 blending = (blending -0.2) * 0.7;
                 blending = normalize(max(blending, 0.00001));      // Force weights to sum to 1.0 (very important!)
                 float b = (blending.x + blending.y + blending.z);
                 blending /= vec3(b, b, b);
 
 
-            albedo = calculateTriPlanarAlbedoBlend(wNormal, wVertex, texCoord, blending);
+            albedo = calculateTriPlanarAlbedoBlend(norm, wVertex, texCoord, blending);
             
         #else
             albedo = calculateAlbedoBlend(texCoord);
@@ -740,25 +793,32 @@ void main(){
     //---------------------
     // normal calculations
     //---------------------
+    
+     
     #if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7) || defined(NORMALMAP_8) || defined(NORMALMAP_9) || defined(NORMALMAP_10) || defined(NORMALMAP_11)
-      #ifdef TRI_PLANAR_MAPPING
+  
+   
+
+    #ifdef TRI_PLANAR_MAPPING
     //    normal = calculateNormalTriPlanar(wNormal, wVertex, texCoord);
+
       #else
     //    normal = calculateNormal(texCoord);
       #endif
 
-      normal += norm * 0.9;
+      
+      
+   //   normal+= norm;
 
-normal = normalize(normal * vec3(2.0) - vec3(1.0));
 
     #else
 
+
       
-       normal = normalize(norm * vec3(2.0) - vec3(1.0));
+   //    normal = normalize(norm * vec3(2.0) - vec3(1.0));
 
-       normal = wNormal;
+       normal = norm;
     #endif
-
  //   normal = normalize(normal * vec3(2.0) - vec3(1.0));
 
 //APPLY PLAGUEDNESS TO THE PIXEL
@@ -794,33 +854,45 @@ vec3 plaguedNormal;
     #endif
 
 
-    plaguedNormal = normalize((plaguedNormal.xyz * vec3(2.0) - vec3(1.0)));
-    plaguedNormal = normalize(tbnMat * plaguedNormal);
+//   plaguedNormal = normalize((plaguedNormal.xyz * vec3(2.0) - vec3(1.0)));
+//    plaguedNormal = normalize(tbnMat * plaguedNormal);
 #else
-    plaguedNormal = norm; 
+    plaguedNormal = wNormal; 
 
 #endif
 
 
-float plaguedMetallic;
-float plaguedRoughness;
-#ifdef PLAGUEDROUGHNESSMETALLICMAP
-    plaguedMetallic = 0.262;
-    plaguedRoughness = 0.753;
-//    plaguedRoughness = texture2D(m_PlaguedRoughnessMetallicMap, newScaledCoords).g;
+float plaguedMetallic = 0.0;  
+float plaguedRoughness = 0.0;
+float plaguedAo = 1.0;
+float plaguedEmissiveIntensity = 0.0;
+
+#ifdef PLAGUEDROUGHNESSMETALLICMAP    
+    vec4 metallicRoughnessAoEiVec = texture2D(m_PlaguedRoughnessMetallicMap, newScaledCoords);
+    plaguedRoughness = metallicRoughnessAoEiVec.g;
+    plaguedMetallic = metallicRoughnessAoEiVec.b;
+    plaguedAo = metallicRoughnessAoEiVec.r;
+    plaguedEmissiveIntensity = metallicRoughnessAoEiVec.a;
+    
 #else
     plaguedMetallic = 0.262;
-    plaguedRoughness = 0.753;
+    plaguedRoughness = 0.753; //note that these should be material params, and be multiplied by the plagued mrao map
+                               // if it exists, or used as static values if there is not value in the map.
 #endif
 
+
+    
 vec4 plaguedGlowColor = vec4(0.87, 0.95, 0.1, 1.0);
 
     noiseHash = getStaticNoiseVar0(wPosition, plaguedValue);
     Roughness = alterPlaguedRoughness(plaguedValue, Roughness, plaguedRoughness, noiseHash * plaguedAlbedo.a);
     Metallic = alterPlaguedMetallic(plaguedValue, Metallic,  plaguedMetallic, noiseHash * plaguedAlbedo.a);//use the alpha channel of albedo map to alter opcaity for the matching plagued normals, roughness, and metalicness at each pixel
     albedo = alterPlaguedColor(plaguedValue, albedo, plaguedAlbedo, noiseHash * plaguedAlbedo.a);
-    normal = alterPlaguedNormals(plaguedValue, normal, plaguedNormal, noiseHash * plaguedAlbedo.a);
+    normal = alterPlaguedNormalsForTerrain(plaguedValue, normal, plaguedNormal, noiseHash * plaguedAlbedo.a, wNormal);
     plaguedGlowColor = alterPlaguedGlow(plaguedValue, plaguedGlowColor, noiseHash);
+
+
+
 
 plaguedGlowColor = vec4(0);
 
@@ -828,21 +900,22 @@ plaguedGlowColor = vec4(0);
 
 //END PLAGUEDNESS BEING APPLIED
 
-    float specular = 0.5;
+
+//is this necissary to keep still? since spec gloss pipeline most likely will never be supported for this terrain shader...
     #ifdef SPECGLOSSPIPELINE
 
         #ifdef USE_PACKED_SG
-            vec4 specularColor = texture2D(m_SpecularGlossinessMap, texCoord);
+            vec4 specularColor = texture2D(m_SpecularGlossinessMap, newTexCoord);
             float glossiness = specularColor.a * m_Glossiness;
             specularColor *= m_Specular;
         #else
             #ifdef SPECULARMAP
-                vec4 specularColor = texture2D(m_SpecularMap, texCoord);
+                vec4 specularColor = texture2D(m_SpecularMap, newTexCoord);
             #else
                 vec4 specularColor = vec4(1.0);
             #endif
             #ifdef GLOSSINESSMAP
-                float glossiness = texture2D(m_GlossinesMap, texCoord).r * m_Glossiness;
+                float glossiness = texture2D(m_GlossinessMap, newTexCoord).r * m_Glossiness;
             #else
                 float glossiness = m_Glossiness;
             #endif
@@ -850,23 +923,23 @@ plaguedGlowColor = vec4(0);
         #endif
         vec4 diffuseColor = albedo;// * (1.0 - max(max(specularColor.r, specularColor.g), specularColor.b));
         Roughness = 1.0 - glossiness;
-    #else      
+        vec3 fZero = specularColor.xyz;
+    #else
+        float specular = 0.5;
         float nonMetalSpec = 0.08 * specular;
         vec4 specularColor = (nonMetalSpec - nonMetalSpec * Metallic) + albedo * Metallic;
         vec4 diffuseColor = albedo - albedo * Metallic;
+        vec3 fZero = vec3(specular);
     #endif
 
+
     gl_FragColor.rgb = vec3(0.0);
+    
     vec3 ao = vec3(1.0);
 
-
-    ao = alterPlaguedAo(plaguedValue, ao, vec3(1.0), noiseHash); // alter the AO map for plagued values
-
-
-float sunBrightness = 1.0;   
-
  //   #ifdef LIGHTMAP
-       vec3 lightMapColor;
+       vec3 lightMapColor = vec3(1.0);//vec3(0.8142); 
+       lightMapColor = alterPlaguedAo(plaguedValue, lightMapColor, vec3(plaguedAo), noiseHash); // alter the AO map for plagued values
        #ifdef SEPARATE_TEXCOORD
         #ifdef AFFLICTIONTEXTURE
     //      lightMapColor = texture2D(m_AfflictionTexture, texCoord2).rgb;
@@ -885,10 +958,9 @@ float sunBrightness = 1.0;
    //    #endif
        specularColor.rgb *= lightMapColor;
  //   #endif
- 
- 
- 
-  //SUN EXPOSURE AND TIME OF DAY
+    
+  //SUN EXPOSURE AND TIME OF DAY - even though ambient lighting support day/night brightness scaling,
+  //the timeOfDayScale will not affect anything as long as probeColor is not defined
     float factoredTimeOfDayScale = timeOfDayScale;
     #ifdef STATIC_SUN_INTENSITY
         indoorSunLightExposure = m_StaticSunIntensity;
@@ -897,11 +969,10 @@ float sunBrightness = 1.0;
         indoorSunLightExposure = vertColors.r * indoorSunLightExposure;             //use R channel of vertexColors... *^.
         
     #endif
+    brightestPointLight = 0.0;
     
     
-    factoredTimeOfDayScale *= indoorSunLightExposure;  //timeOfDayScale (aka a float to scale lightProbe at night vs day) is only as effective as the indooSunLightExposure
-                                                           //it will be 
-     
+    factoredTimeOfDayScale *= indoorSunLightExposure;  //indoor sun-light exposure is scaled by time of day's brightness as well..
 
     float ndotv = max( dot( normal, viewDir ),0.0);
     for( int i = 0;i < NB_LIGHTS; i+=3){
@@ -927,8 +998,8 @@ float sunBrightness = 1.0;
         vec3 directDiffuse;
         vec3 directSpecular;
         
-        PBR_ComputeDirectLight(normal, lightDir.xyz, viewDir,
-                            lightColor.rgb,specular, Roughness, ndotv,
+         float hdotv = PBR_ComputeDirectLight(normal, lightDir.xyz, viewDir,
+                            lightColor.rgb, fZero, Roughness, ndotv,
                             directDiffuse,  directSpecular);
 
         vec3 directLighting = diffuseColor.rgb *directDiffuse + directSpecular;
@@ -952,10 +1023,9 @@ float sunBrightness = 1.0;
      
     }
     
-    
     float minVertLighting;
     #ifdef BRIGHTEN_INDOOR_SHADOWS
-        minVertLighting = 0.0833; //brighten shadows so that caves which are naturally covered from the DL shadows are not way too dark compared to when shadows are off
+        minVertLighting = 0.0833; //brighten shadows so that near pitch-dark caves which are naturally covered with DL shadows are not way too dark compared to when shadows are off
     #else
         minVertLighting = 0.0533;
     
@@ -967,32 +1037,50 @@ float sunBrightness = 1.0;
     
     
 
-    #ifdef INDIRECT_LIGHTING
-        vec3 rv = reflect(-viewDir.xyz, normal.xyz);
-        //prallax fix for spherical bounds from https://seblagarde.wordpress.com/2012/09/29/image-based-lighting-approaches-and-parallax-corrected-cubemap/
-        // g_LightProbeData.w is 1/probe radius + nbMipMaps, g_LightProbeData.xyz is the position of the lightProbe.
+    
 
-        float invRadius = fract( g_LightProbeData.w );
-        float nbMipMaps = g_LightProbeData.w - invRadius;
-        rv = invRadius * (wPosition - g_LightProbeData.xyz) +rv;
+   // #if NB_PROBES >= 1
+        vec3 color1 = vec3(0.0);
+        vec3 color2 = vec3(0.0);
+        vec3 color3 = vec3(0.0);
+        float weight1 = 1.0;
+        float weight2 = 0.0;
+        float weight3 = 0.0;
 
-         //horizon fade from http://marmosetco.tumblr.com/post/81245981087
-        float horiz = dot(rv , norm);
-        float horizFadePower = 1.0 - Roughness;
-        horiz = clamp( 1.0 + horizFadePower * horiz, 0.0, 1.0 );
-        horiz *= horiz;
+        float ndf = renderProbe(viewDir, wPosition, normal, norm, Roughness, diffuseColor, specularColor, ndotv, ao, g_LightProbeData, g_ShCoeffs, g_PrefEnvMap, color1);
+        #if NB_PROBES >= 2
+            float ndf2 = renderProbe(viewDir, wPosition, normal, norm, Roughness, diffuseColor, specularColor, ndotv, ao, g_LightProbeData2, g_ShCoeffs2, g_PrefEnvMap2, color2);
+        #endif
+        #if NB_PROBES == 3
+            float ndf3 = renderProbe(viewDir, wPosition, normal, norm, Roughness, diffuseColor, specularColor, ndotv, ao, g_LightProbeData3, g_ShCoeffs3, g_PrefEnvMap3, color3);
+        #endif
 
-        vec3 indirectDiffuse = vec3(0.0);
-        vec3 indirectSpecular = vec3(0.0);
-        indirectDiffuse = sphericalHarmonics(normal.xyz, g_ShCoeffs) * diffuseColor.rgb;
-        vec3 dominantR = getSpecularDominantDir( normal, rv.xyz, Roughness*Roughness ) ;
-        indirectSpecular = ApproximateSpecularIBLPolynomial(g_PrefEnvMap, specularColor.rgb , Roughness, ndotv, dominantR, nbMipMaps);
-        indirectSpecular *= vec3(horiz);
-        
-        vec3 indirectLighting = (indirectDiffuse  + indirectSpecular) * probeColorMult * ao * factoredTimeOfDayScale;  //multiply the probeColor and time of day scale by final inderectLighting value from lightProbe
+         #if NB_PROBES >= 2
+            float invNdf =  max(1.0 - ndf,0.0);
+            float invNdf2 =  max(1.0 - ndf2,0.0);
+            float sumNdf = ndf + ndf2;
+            float sumInvNdf = invNdf + invNdf2;
+            #if NB_PROBES == 3
+                float invNdf3 = max(1.0 - ndf3,0.0);
+                sumNdf += ndf3;
+                sumInvNdf += invNdf3;
+                weight3 =  ((1.0 - (ndf3 / sumNdf)) / (NB_PROBES - 1)) *  (invNdf3 / sumInvNdf);
+            #endif
 
-        gl_FragColor.rgb = gl_FragColor.rgb + indirectLighting  * step( 0.0, g_LightProbeData.w ) ;
-    #endif
+            weight1 = ((1.0 - (ndf / sumNdf)) / (NB_PROBES - 1)) *  (invNdf / sumInvNdf);
+            weight2 = ((1.0 - (ndf2 / sumNdf)) / (NB_PROBES - 1)) *  (invNdf2 / sumInvNdf);
+
+            float weightSum = weight1 + weight2 + weight3;
+
+            weight1 /= weightSum;
+            weight2 /= weightSum;
+            weight3 /= weightSum;
+        #endif
+        gl_FragColor.rgb += color1 * clamp(weight1,0.0,1.0) + color2 * clamp(weight2,0.0,1.0) + color3 * clamp(weight3,0.0,1.0);
+
+
+     //   gl_FragColor.rgb = vec3(1.0);
+ //   #endif
  
     #if defined(EMISSIVE) || defined (EMISSIVEMAP)
         #ifdef EMISSIVEMAP
@@ -1010,6 +1098,20 @@ float sunBrightness = 1.0;
 
     gl_FragColor += plaguedGlowColor * pow(plaguedValue * 1.3, plaguedGlowColor.a) * (plaguedValue *1.5);
 
+
+    // add the fog after the lighting for pbr
+    #ifdef USE_FOG
+        #ifdef FOG_LINEAR
+            gl_FragColor = getFogLinear(gl_FragColor, m_FogColor, m_LinearFog.x, m_LinearFog.y, fogDistance);
+        #endif
+        #ifdef FOG_EXP
+            gl_FragColor = getFogExp(gl_FragColor, m_FogColor, m_ExpFog, fogDistance);
+        #endif
+        #ifdef FOG_EXPSQ
+            gl_FragColor = getFogExpSquare(gl_FragColor, m_FogColor, m_ExpSqFog, fogDistance);
+        #endif
+    #endif 
+    
 
 
     gl_FragColor.a = 1.0;
