@@ -5,11 +5,14 @@ attribute vec3 inPosition;
 attribute vec3 inNormal;
 attribute vec2 inTexCoord;
 
-uniform vec4 g_AmbientLightColor; //passed to .frag for scaling light probe brightness in 3.3 compatible version of this shader.
-
 varying vec2 texCoord;
 varying vec3 wPosition;
 varying vec3 wNormal;
+
+
+uniform vec4 g_AmbientLightColor; //passed to .frag for scaling light probe brightness in 3.3 compatible version of this shader.
+
+
 
 #ifdef TRI_PLANAR_MAPPING
   varying vec4 wVertex;
@@ -29,6 +32,8 @@ void main(){
     texCoord = inTexCoord;
 
     wPosition = TransformWorld(modelSpacePos).xyz;
+    
+    
     wNormal  = normalize(TransformWorldNormal(inNormal));
    #if  defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7)  || defined(PLAGUEDNORMALMAP)
         wTangent = vec4(TransformWorldNormal(inTangent.xyz),inTangent.w);
@@ -38,4 +43,8 @@ void main(){
        wVertex = vec4(inPosition,0.0);
        wNormal = inNormal;
     #endif
+    
+    
+  
+    
 }
