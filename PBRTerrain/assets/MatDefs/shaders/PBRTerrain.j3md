@@ -1,5 +1,5 @@
 // NOTE: Doesn't support OpenGL1
-MaterialDef PBR AfflictedTerrain_33 {
+MaterialDef PBR Terrain {
 
     MaterialParameters {
     
@@ -44,18 +44,18 @@ MaterialDef PBR AfflictedTerrain_33 {
             Float TileWidth : 0
             Vector3 TileLocation
 
-            Int AfflictionMode_0
-            Int AfflictionMode_1
-            Int AfflictionMode_2
-            Int AfflictionMode_3
-            Int AfflictionMode_4
-            Int AfflictionMode_5
-            Int AfflictionMode_6
-            Int AfflictionMode_7
-            Int AfflictionMode_8
-            Int AfflictionMode_9
-            Int AfflictionMode_10
-            Int AfflictionMode_11
+            Int AfflictionMode_0 : 1
+            Int AfflictionMode_1 : 1
+            Int AfflictionMode_2 : 1
+            Int AfflictionMode_3 : 1
+            Int AfflictionMode_4 : 1
+            Int AfflictionMode_5 : 1
+            Int AfflictionMode_6 : 1
+            Int AfflictionMode_7 : 1
+            Int AfflictionMode_8 : 1
+            Int AfflictionMode_9 : 1
+            Int AfflictionMode_10 : 1
+            Int AfflictionMode_11 : 1
             
             Float Roughness_0 : 0.0
             Float Roughness_1 : 0.0
@@ -242,14 +242,21 @@ MaterialDef PBR AfflictedTerrain_33 {
         Boolean UseVertexColor
 
         Boolean BackfaceShadows : false
+
+
+        Boolean UseFog
+        Color FogColor
+        Vector2 LinearFog
+        Float ExpFog
+        Float ExpSqFog
     }
 
     Technique {
 
         LightMode SinglePassAndImageBased
 
-        VertexShader  GLSL150:   MatDefs/vert/AfflictedPBRTerrain.vert
-        FragmentShader GLSL150: MatDefs/frag/AfflictedPBRTerrain_33.frag
+        VertexShader  GLSL150:   MatDefs/vert/PBRTerrain.vert
+        FragmentShader GLSL150: MatDefs/frag/PBRTerrain.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
@@ -282,18 +289,11 @@ MaterialDef PBR AfflictedTerrain_33 {
             STATIC_SUN_INTENSITY : StaticSunIntensity
             BRIGHTEN_INDOOR_SHADOWS : BrightenIndoorShadows
 
-            ALIVE_0 : Alive_0
-            ALIVE_1 : Alive_1
-            ALIVE_2 : Alive_2
-            ALIVE_3 : Alive_3
-            ALIVE_4 : Alive_4
-            ALIVE_5 : Alive_5
-            ALIVE_6 : Alive_6
-            ALIVE_7 : Alive_7
-            ALIVE_8 : Alive_8
-            ALIVE_9 : Alive_9
-            ALIVE_10 : Alive_10
-            ALIVE_11 : Alive_11
+
+            USE_FOG : UseFog
+            FOG_LINEAR : LinearFog
+            FOG_EXP : ExpFog
+            FOG_EXPSQ : ExpSqFog
 
 
             NORMAL_TYPE: NormalType
@@ -312,6 +312,7 @@ MaterialDef PBR AfflictedTerrain_33 {
             ALBEDOMAP_9 : AlbedoMap_9
             ALBEDOMAP_10 : AlbedoMap_10
             ALBEDOMAP_11 : AlbedoMap_11
+
             NORMALMAP_0 : NormalMap_0
             NORMALMAP_1 : NormalMap_1
             NORMALMAP_2 : NormalMap_2
@@ -341,6 +342,101 @@ MaterialDef PBR AfflictedTerrain_33 {
             ALBEDOMAP_10_SCALE : AlbedoMap_10_scale
             ALBEDOMAP_11_SCALE : AlbedoMap_11_scale
             
+        }
+    }
+
+
+    Technique PreShadow {
+
+        VertexShader GLSL100 GLSL150 :   Common/MatDefs/Shadow/PreShadow.vert
+        FragmentShader GLSL100 GLSL150 : Common/MatDefs/Shadow/PreShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+
+        Defines {
+            DISCARD_ALPHA : AlphaDiscardThreshold
+            NUM_BONES : NumberOfBones
+            INSTANCING : UseInstancing
+        }
+
+        ForcedRenderState {
+            FaceCull Off
+            DepthTest On
+            DepthWrite On
+            PolyOffset 5 3
+            ColorWrite Off
+        }
+
+    }
+
+
+    Technique PostShadow{
+        VertexShader GLSL150:   Common/MatDefs/Shadow/PostShadow.vert
+        FragmentShader GLSL150: Common/MatDefs/Shadow/PostShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+
+        Defines {
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            DISCARD_ALPHA : AlphaDiscardThreshold           
+            SHADOWMAP_SIZE : ShadowMapSize
+            SHADOWMAP_SIZE : ShadowMapSize
+            FADE : FadeInfo
+            PSSM : Splits
+            POINTLIGHT : LightViewProjectionMatrix5
+            NUM_BONES : NumberOfBones
+            INSTANCING : UseInstancing
+            BACKFACE_SHADOWS: BackfaceShadows
+        }
+
+        ForcedRenderState {
+            Blend Modulate
+            DepthWrite Off                 
+            PolyOffset -0.1 0
+        }
+    }
+
+    Technique PostShadow{
+        VertexShader GLSL100:   Common/MatDefs/Shadow/PostShadow.vert
+        FragmentShader GLSL100: Common/MatDefs/Shadow/PostShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+
+        Defines {
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            DISCARD_ALPHA : AlphaDiscardThreshold           
+            SHADOWMAP_SIZE : ShadowMapSize
+            FADE : FadeInfo
+            PSSM : Splits
+            POINTLIGHT : LightViewProjectionMatrix5
+            NUM_BONES : NumberOfBones
+            INSTANCING : UseInstancing
+            BACKFACE_SHADOWS: BackfaceShadows
+        }
+
+        ForcedRenderState {
+            Blend Modulate
+            DepthWrite Off   
+            PolyOffset -0.1 0  
         }
     }
     
