@@ -9,7 +9,32 @@ vec4 getTriPlanarBlend(in vec4 coords, in vec3 blending, in sampler2D map, in fl
       vec4 tex = col1 * blending.x + col2 * blending.y + col3 * blending.z;
       
       return tex;
-    }
+}
+
+
+//used for mixing normal map normals with the world normals. texure slots without a normal map use wNormal as their blending value instead
+vec3 mixNormals(in vec3 normalIn, in vec3 worldNorm, in mat3 tbnMat){
+    
+    
+    vec3 returnNorm = normalize((normalIn.xyz * vec3(2.0) - vec3(1.0)));
+  //   vec3 returnNorm = normalize(normalIn.xyz);
+     
+     
+    
+        vec3 baseNorm = worldNorm.rgb + vec3(0, 0, 1);
+        returnNorm *= vec3(-1, -1, 1);
+        returnNorm = baseNorm.rgb*dot(baseNorm.rgb, returnNorm.rgb)/baseNorm.z - returnNorm.rgb;
+
+        returnNorm = normalize(returnNorm);
+        
+        
+        
+        
+   //     returnNorm.rgb = normalize(returnNorm.rgb * vec3(2.0) - vec3(1.0));
+
+        return returnNorm;
+}
+
 
 vec4 desaturate(vec4 albedo, float deathVar){
         
@@ -26,7 +51,7 @@ vec4 desaturate(vec4 albedo, float deathVar){
 
     //    liveVal 
 
-        if(mode > 0){ //0 means dont scale to be dead or alive at all (bricks, etc)
+   //     if(mode > 0){ //0 means dont scale to be dead or alive at all (bricks, etc)
 
 
 
@@ -47,7 +72,9 @@ vec4 desaturate(vec4 albedo, float deathVar){
 
 
             color = desaturate(vec4(color, 1.0), deathVar).rgb;
-        }
+  //      }
+        
+   //     color = vec3(0.1);
         
         return color;
         
@@ -190,11 +217,15 @@ vec4 alterPlaguedGlow(float plaguedVar, vec4 plaguedGlowColor, float noiseVar){
 vec3 alterPlaguedNormals(float plaguedVar, vec3 normal, vec3 plaguedNormal, float noiseVar){
 //do something so that the middle points of the 
 
+ //   plaguedNormal = (vec3(2) * plaguedNormal) - vec3(1);
+
     vec3 originalNorm = normal * 1.3 * noiseVar;
 
     plaguedVar = getAdjustedPlaguedVar(plaguedVar);
 
     float edgeTaper = getPlaguedEdgeTaper(noiseVar, plaguedVar);  
+    
+ //   plaguedNormal = mixNormals(plaguedNormal);
 
     if(plaguedVar >= noiseVar){
         normal = plaguedNormal;
@@ -211,6 +242,48 @@ vec3 alterPlaguedNormals(float plaguedVar, vec3 normal, vec3 plaguedNormal, floa
 
     
     return normalize(normal + originalNorm);
+}
+
+vec3 alterPlaguedNormalsForTerrain(float plaguedVar, vec3 normal, vec3 plaguedNormal, float noiseVar, vec3 worldNorm, in mat3 tbnMat){
+//do something so that the middle points of the 
+
+ //   plaguedNormal = (vec3(2) * plaguedNormal) - vec3(1);
+
+
+    plaguedVar = getAdjustedPlaguedVar(plaguedVar);
+
+    float edgeTaper = getPlaguedEdgeTaper(noiseVar, plaguedVar);  
+    
+    
+    vec3 blendedNormal = normal;
+    
+    float blendValue = plaguedVar;
+    
+    if(plaguedVar >= noiseVar){
+     //   normal = plaguedNormal;
+        blendValue = 1.0;
+    }
+    else if(plaguedVar > edgeTaper){
+        float edgeDiff = noiseVar - plaguedVar;
+        edgeDiff = edgeDiff / plaguedVar;
+        
+        blendValue *= edgeDiff;
+    //     normal = mix(plaguedNormal, normal, edgeDiff);
+    }
+    else{
+        blendValue = noiseVar * plaguedVar;
+    //    albedo.rgb = mix(albedo.rgb, plaguedAlbedo.rgb, plaguedVar * noiseVar * noiseVar* plaguedAlbedo.a);
+    }
+    
+    
+    
+    plaguedNormal = mixNormals(plaguedNormal, worldNorm, tbnMat);
+    blendedNormal = mix(normal, plaguedNormal, blendValue);
+
+ //   blendedNormal = normalize(tbnMat * blendedNormal);
+    
+    
+    return blendedNormal;
 }
 
 vec3 alterPlaguedAo(float plaguedVar, vec3 ao, vec3 plaguedAo, float noiseVar){
@@ -287,6 +360,8 @@ float alterPlaguedMetallic(float plaguedVar, float originalMetallic, float plagu
     originalMetallic = min(originalMetallic, 1.0);
     return originalMetallic;
 }
+
+
 
 
 
