@@ -56,12 +56,7 @@ public class TestPBRTerrain extends SimpleApplication {
         setupKeys();
 
         // TERRAIN TEXTURE material
-        matTerrain = new Material(assetManager, "MatDefs/shaders/AfflictedPBRTerrain.j3md");
-        
-        //or for 3.3 compatible version of shader (including smooth probe blending and AmbientLight brightness for day/night)
-        // use this shader instead:
-        // matTerrain = new Material(assetManager, "MatDefs/shaders/AfflictedPBRTerrain_33.j3md");
-        
+        matTerrain = new Material(assetManager, "MatDefs/shaders/PBRTerrain.j3md");
         
         matTerrain.setBoolean("useTriPlanarMapping", false);
         matTerrain.setVector4("ProbeColor", new Vector4f(1, 1, 1, 1));
