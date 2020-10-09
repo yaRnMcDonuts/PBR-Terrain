@@ -1,5 +1,5 @@
 #import "Common/ShaderLib/GLSLCompat.glsllib"
-#import "MatDefs/ShaderLib/PBR.glsllib"
+#import "Common/ShaderLib/PBR.glsllib"
 #import "Common/ShaderLib/Parallax.glsllib"
 #import "Common/ShaderLib/Lighting.glsllib"
 #import "MatDefs/ShaderLib/AfflictionLib.glsllib"
@@ -25,30 +25,6 @@ varying vec3 wPosition;
 #endif
 
 
-
-
-
-
-#import "Common/ShaderLib/GLSLCompat.glsllib"
-#import "Common/ShaderLib/PBR.glsllib"
-#import "Common/ShaderLib/Parallax.glsllib"
-#import "Common/ShaderLib/Lighting.glsllib"
-
-#import "MatDefs/ShaderLib/AfflictionLib.glsllib"
-
-
-
-uniform vec4 g_LightData[NB_LIGHTS];
-
-varying vec3 wPosition;
-
-#ifdef INDIRECT_LIGHTING
-//  uniform sampler2D m_IntegrateBRDF;
-  uniform samplerCube g_PrefEnvMap;
-  uniform samplerCube g_IrradianceMap;
-  uniform vec3 g_ShCoeffs[9];
-  uniform vec4 g_LightProbeData;
-#endif
 
 
 ///TODO LIST
@@ -926,21 +902,20 @@ plaguedGlowColor = vec4(0);
 
 
 //is this necissary to keep still? since spec gloss pipeline most likely will never be supported for this terrain shader...
-    float specular = 0.5;
     #ifdef SPECGLOSSPIPELINE
 
         #ifdef USE_PACKED_SG
-            vec4 specularColor = texture2D(m_SpecularGlossinessMap, texCoord);
+            vec4 specularColor = texture2D(m_SpecularGlossinessMap, newTexCoord);
             float glossiness = specularColor.a * m_Glossiness;
             specularColor *= m_Specular;
         #else
             #ifdef SPECULARMAP
-                vec4 specularColor = texture2D(m_SpecularMap, texCoord);
+                vec4 specularColor = texture2D(m_SpecularMap, newTexCoord);
             #else
                 vec4 specularColor = vec4(1.0);
             #endif
             #ifdef GLOSSINESSMAP
-                float glossiness = texture2D(m_GlossinesMap, texCoord).r * m_Glossiness;
+                float glossiness = texture2D(m_GlossinessMap, newTexCoord).r * m_Glossiness;
             #else
                 float glossiness = m_Glossiness;
             #endif
@@ -948,10 +923,13 @@ plaguedGlowColor = vec4(0);
         #endif
         vec4 diffuseColor = albedo;// * (1.0 - max(max(specularColor.r, specularColor.g), specularColor.b));
         Roughness = 1.0 - glossiness;
-    #else      
+        vec3 fZero = specularColor.xyz;
+    #else
+        float specular = 0.5;
         float nonMetalSpec = 0.08 * specular;
         vec4 specularColor = (nonMetalSpec - nonMetalSpec * Metallic) + albedo * Metallic;
         vec4 diffuseColor = albedo - albedo * Metallic;
+        vec3 fZero = vec3(specular);
     #endif
 
 
