@@ -2,37 +2,31 @@
 #import "Common/ShaderLib/PBR.glsllib"
 #import "Common/ShaderLib/Parallax.glsllib"
 #import "Common/ShaderLib/Lighting.glsllib"
+
 #import "MatDefs/ShaderLib/AfflictionLib.glsllib"
 
+
+
 uniform vec4 g_LightData[NB_LIGHTS];
+uniform vec4 g_AmbientLightColor;
 
 varying vec3 wPosition;
 
-//#if NB_PROBES >= 1
-  uniform samplerCube g_PrefEnvMap;
-  uniform vec3 g_ShCoeffs[9];
-  uniform mat4 g_LightProbeData;
-//#endif
+#if NB_PROBES >= 1
+    uniform samplerCube g_PrefEnvMap;
+    uniform vec3 g_ShCoeffs[9];
+    uniform mat4 g_LightProbeData;
+#endif
 #if NB_PROBES >= 2
-  uniform samplerCube g_PrefEnvMap2;
-  uniform vec3 g_ShCoeffs2[9];
-  uniform mat4 g_LightProbeData2;
+    uniform samplerCube g_PrefEnvMap2;
+    uniform vec3 g_ShCoeffs2[9];
+    uniform mat4 g_LightProbeData2;
 #endif
 #if NB_PROBES == 3
-  uniform samplerCube g_PrefEnvMap3;
-  uniform vec3 g_ShCoeffs3[9];
-  uniform mat4 g_LightProbeData3;
+    uniform samplerCube g_PrefEnvMap3;
+    uniform vec3 g_ShCoeffs3[9];
+    uniform mat4 g_LightProbeData3;
 #endif
-
-
-uniform vec4 g_AmbientLightColor;
-
-
-
-///TODO LIST
-
-// include plaguedEmissiveColor to be multiplied by the EI channel in packedMRAoEi map
-
 
 
 #ifdef EMISSIVE
@@ -57,7 +51,7 @@ uniform vec4 g_AmbientLightColor;
 
 varying vec3 vNormal;
 
-//#if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7) || defined(PLAGUEDNORMALMAP)
+//#if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7) || defined(AFFLICTIONNORMALMAP)
     varying vec4 wTangent;
 //#endif
 
@@ -153,24 +147,33 @@ uniform float m_Metallic_11;
     uniform sampler2D m_AfflictionTexture;
 #endif
 
-//defined for sub terrains that arent equal to each map tile size for optional affliction splatting
+//defined for sub terrains that arent equal to each map tile size
 #ifdef TILELOCATION
     uniform float m_TileWidth;
     uniform vec3 m_TileLocation;
 #endif
 
 uniform int m_PlaguedMapScale;
-#ifdef PLAGUEDALBEDOMAP
-    uniform sampler2D m_PlaguedAlbedoMap;
+#ifdef AFFLICTIONALBEDOMAP
+    uniform sampler2D m_PlaguedAlbedoMap ;
 #endif
 
-#ifdef PLAGUEDNORMALMAP
-    uniform sampler2D m_PlaguedNormalMap;
+#ifdef AFFLICTIONNORMALMAP
+    uniform sampler2D m_PlaguedNormalMap ;
 #endif
 
-#ifdef PLAGUEDROUGHNESSMETALLICMAP
+#ifdef AFFLICTIONROUGHNESSMETALLICMAP
     uniform sampler2D m_PlaguedRoughnessMetallicMap;
 #endif
+
+#ifdef AFFLICTIONEMISSIVEMAP
+    uniform sampler2D m_PlaguedEmissiveMap;
+#endif
+
+uniform float m_AfflictionRoughnessValue;
+uniform float m_AfflictionMetallicValue;
+uniform float m_AfflictionEmissiveValue;
+uniform vec4 m_AfflictionEmissiveColor;
 
 
 #ifdef ALBEDOMAP_0
@@ -319,10 +322,11 @@ vec4 albedo;
 vec4 tempAlbedo, tempNormal;
 float noiseHash;
 float livelinessValue;
-float plaguedValue;
+float afflictionValue;
 int afflictionMode = 1;
 vec3 normal = vec3(0.5,0.5,1);
 vec3 newNormal;
+float emissiveIntensity = 1.0;
 
    
 
@@ -649,8 +653,8 @@ vec4 calculateAlbedoBlend(in vec2 texCoord) {
 
 
 
-//sun intensity is essentially a secondary AO value that can be painted per-vertex in the red channel of the 
-// vertex colors, or it can be set as a static value for an entire material
+//sun intensity is a secondary AO value that can be painted per-vertex in the red channel of the 
+// vertex colors, or it can be set as a static value for an entire material with StaticSunIntensity float param
 #if defined(USE_VERTEX_COLORS_AS_SUN_INTENSITY) 
     varying vec4 vertColors; 
 #endif
@@ -663,12 +667,10 @@ vec4 calculateAlbedoBlend(in vec2 texCoord) {
 float brightestPointLight = 0.0;
 
 
-//used for scaling a probes color, and for scaling a probe's brightness in 3.2 - note that in 3.3, ambient light
-//is changed to now affect the probes brightness for day/night.. but this can still be useful for color multiplying if
-// a scene needs to drastically shift colors.
-#ifdef PROBE_COLOR
-    uniform vec4 m_ProbeColor;
+#ifdef PROBE_COLOR 
+    uniform vec4 m_ProbeColor; //not necissary for day/night in 3.3 now that ambient light scales probe as well
 #endif
+
 void main(){
     
     
@@ -696,7 +698,7 @@ void main(){
     vec3 norm = normalize(wNormal);
     normal.rgb = norm.rgb;
  //   norm = vec3(0.5, 0.5, 1.0);
- //   #if defined(NORMALMAP_0) || defined(PARALLAXMAP) || defined(PLAGUEDNORMALMAP)
+ //   #if defined(NORMALMAP_0) || defined(PARALLAXMAP) || defined(AFFLICTIONNORMALMAP)
         vec3 tan = normalize(wTangent.xyz);
    //     tbnMat = mat3(tan, wTangent.w * cross( (wNormal), (tan)), norm);
 
@@ -732,7 +734,7 @@ void main(){
     #endif
 
     livelinessValue = afflictionVector.r;
-    plaguedValue = afflictionVector.g;
+    afflictionValue = afflictionVector.g;
 
 
 //get the 0,0 pixel at first corner of texture, and use this as sunlight value
@@ -821,90 +823,90 @@ void main(){
 
        normal = norm;
     #endif
+    
  //   normal = normalize(normal * vec3(2.0) - vec3(1.0));
 
-//APPLY PLAGUEDNESS TO THE PIXEL
+//APPLY AFFLICTIONNESS TO THE PIXEL
 
-vec4 plaguedAlbedo;    
+vec4 afflictionAlbedo;    
 
 
-float newPlagueScale = m_PlaguedMapScale; //manually assigned as of now, since running into bugs...
+float newAfflictionScale = m_PlaguedMapScale; //manually assigned as of now, since running into bugs...
 vec2 newScaledCoords;
 
-#ifdef PLAGUEDALBEDOMAP
+#ifdef AFFLICTIONALBEDOMAP
     #ifdef TRI_PLANAR_MAPPING
-        newPlagueScale = newPlagueScale / 256;
-        plaguedAlbedo = getTriPlanarBlend(wVertex, blending, m_PlaguedAlbedoMap, newPlagueScale);
+        newAfflictionScale = newAfflictionScale / 256;
+        afflictionAlbedo = getTriPlanarBlend(wVertex, blending, m_PlaguedAlbedoMap , newAfflictionScale);
 
     #else
         newScaledCoords = mod(wPosition.xz / m_PlaguedMapScale, 0.985);
-        plaguedAlbedo = texture2D(m_PlaguedAlbedoMap, newScaledCoords);
+        afflictionAlbedo = texture2D(m_PlaguedAlbedoMap , newScaledCoords);
     #endif
    
 #else
-    plaguedAlbedo = vec4(0.55, 0.8, 0.00, 1.0);
+    afflictionAlbedo = vec4(0.55, 0.8, 0.00, 1.0);
 #endif
 
-vec3 plaguedNormal;
-#ifdef PLAGUEDNORMALMAP
+vec3 afflictionNormal;
+#ifdef AFFLICTIONNORMALMAP
     #ifdef TRI_PLANAR_MAPPING
 
-        plaguedNormal = getTriPlanarBlend(wVertex, blending, m_PlaguedNormalMap, newPlagueScale).rgb;
+        afflictionNormal = getTriPlanarBlend(wVertex, blending, m_PlaguedNormalMap , newAfflictionScale).rgb;
 
     #else
-        plaguedNormal = texture2D(m_PlaguedNormalMap, newScaledCoords).rgb;
+        afflictionNormal = texture2D(m_PlaguedNormalMap , newScaledCoords).rgb;
     #endif
 
 
-//   plaguedNormal = normalize((plaguedNormal.xyz * vec3(2.0) - vec3(1.0)));
-//    plaguedNormal = normalize(tbnMat * plaguedNormal);
+//   afflictionNormal = normalize((afflictionNormal.xyz * vec3(2.0) - vec3(1.0)));
+//    afflictionNormal = normalize(tbnMat * afflictionNormal);
 #else
-    plaguedNormal = wNormal; 
+    afflictionNormal = wNormal; 
 
 #endif
 
-
-float plaguedMetallic = 0.0;  
-float plaguedRoughness = 0.0;
-float plaguedAo = 1.0;
-float plaguedEmissiveIntensity = 0.0;
-
-#ifdef PLAGUEDROUGHNESSMETALLICMAP    
-    vec4 metallicRoughnessAoEiVec = texture2D(m_PlaguedRoughnessMetallicMap, newScaledCoords);
-    plaguedRoughness = metallicRoughnessAoEiVec.g;
-    plaguedMetallic = metallicRoughnessAoEiVec.b;
-    plaguedAo = metallicRoughnessAoEiVec.r;
-    plaguedEmissiveIntensity = metallicRoughnessAoEiVec.a;
-    
-#else
-    plaguedMetallic = 0.262;
-    plaguedRoughness = 0.753; //note that these should be material params, and be multiplied by the plagued mrao map
-                               // if it exists, or used as static values if there is not value in the map.
-#endif
+    float afflictionMetallic = m_AfflictionMetallicValue;
+    float afflictionRoughness = m_AfflictionRoughnessValue;
+    float afflictionAo = 1.0;
 
 
-    
-vec4 plaguedGlowColor = vec4(0.87, 0.95, 0.1, 1.0);
+    vec4 afflictionEmissive = m_AfflictionEmissiveColor;
+    float afflictionEmissiveIntensity = m_AfflictionEmissiveValue;
 
-    noiseHash = getStaticNoiseVar0(wPosition, plaguedValue);
-    Roughness = alterAfflictionRoughness(plaguedValue, Roughness, plaguedRoughness, noiseHash * plaguedAlbedo.a);
-    Metallic = alterAfflictionMetallic(plaguedValue, Metallic,  plaguedMetallic, noiseHash * plaguedAlbedo.a);//use the alpha channel of albedo map to alter opcaity for the matching plagued normals, roughness, and metalicness at each pixel
-    albedo = alterAfflictionColor(plaguedValue, albedo, plaguedAlbedo, noiseHash * plaguedAlbedo.a);
-    normal = alterAfflictionNormalsForTerrain(plaguedValue, normal, plaguedNormal, noiseHash * plaguedAlbedo.a, wNormal);
-    plaguedGlowColor = alterAfflictionGlow(plaguedValue, plaguedGlowColor, noiseHash);
+
+    #ifdef AFFLICTIONROUGHNESSMETALLICMAP    
+        vec4 metallicRoughnessAoEiVec = texture2D(m_PlaguedRoughnessMetallicMap, newScaledCoords);
+        afflictionRoughness *= metallicRoughnessAoEiVec.g;
+        afflictionMetallic *= metallicRoughnessAoEiVec.b;
+        afflictionAo = metallicRoughnessAoEiVec.r;
+        afflictionEmissiveIntensity *= metallicRoughnessAoEiVec.a; //important not to leave this channel all black by accident in the mraoei map if using affliction emissiveness    
+
+    #endif
+
+    #ifdef AFFLICTIONEMISSIVEMAP
+        vec4 emissiveMapColor = texture2D(m_PlaguedEmissiveMap, newScaledCoords);
+        afflictionEmissive *= emissiveMapColor;
+    #endif
 
 
 
+    noiseHash = getStaticNoiseVar0(wPosition, afflictionValue);
+    Roughness = alterAfflictionRoughness(afflictionValue, Roughness, afflictionRoughness, noiseHash * afflictionAlbedo.a);
+    Metallic = alterAfflictionMetallic(afflictionValue, Metallic,  afflictionMetallic, noiseHash * afflictionAlbedo.a);//use the alpha channel of albedo map to alter opcaity for the matching affliction normals, roughness, and metalicness at each pixel
+    albedo = alterAfflictionColor(afflictionValue, albedo, afflictionAlbedo, noiseHash * afflictionAlbedo.a);
+    normal = alterAfflictionNormalsForTerrain(afflictionValue, normal, afflictionNormal, noiseHash * afflictionAlbedo.a, wNormal);
+    afflictionEmissive = alterAfflictionGlow(afflictionValue, afflictionEmissive, noiseHash);
+    //affliction ao value blended below after specular calculation
 
-plaguedGlowColor = vec4(0);
 
 
 
-//END PLAGUEDNESS BEING APPLIED
+//END AFFLICTIONNESS BEING APPLIED
 
 
-//is this necissary to keep still? since spec gloss pipeline most likely will never be supported for this terrain shader...
-    #ifdef SPECGLOSSPIPELINE
+// spec gloss pipeline most likely will not be supported for this terrain shader anytime soon..
+ #ifdef SPECGLOSSPIPELINE
 
         #ifdef USE_PACKED_SG
             vec4 specularColor = texture2D(m_SpecularGlossinessMap, newTexCoord);
@@ -917,7 +919,7 @@ plaguedGlowColor = vec4(0);
                 vec4 specularColor = vec4(1.0);
             #endif
             #ifdef GLOSSINESSMAP
-                float glossiness = texture2D(m_GlossinessMap, newTexCoord).r * m_Glossiness;
+                float glossiness = texture2D(m_GlossinesMap, newTexCoord).r * m_Glossiness;
             #else
                 float glossiness = m_Glossiness;
             #endif
@@ -926,7 +928,7 @@ plaguedGlowColor = vec4(0);
         vec4 diffuseColor = albedo;// * (1.0 - max(max(specularColor.r, specularColor.g), specularColor.b));
         Roughness = 1.0 - glossiness;
         vec3 fZero = specularColor.xyz;
-    #else
+    #else      
         float specular = 0.5;
         float nonMetalSpec = 0.08 * specular;
         vec4 specularColor = (nonMetalSpec - nonMetalSpec * Metallic) + albedo * Metallic;
@@ -934,48 +936,33 @@ plaguedGlowColor = vec4(0);
         vec3 fZero = vec3(specular);
     #endif
 
-
-    gl_FragColor.rgb = vec3(0.0);
-    
+//simple ao calculation (no support for lightmaps like stock pbr shader) - note that ao is always 1.0 for texture slots since this shader does not support enough texture reads for an ao map for each slot
     vec3 ao = vec3(1.0);
-
- //   #ifdef LIGHTMAP
-       vec3 lightMapColor = vec3(1.0);//vec3(0.8142); 
-       lightMapColor = alterAfflictionAo(plaguedValue, lightMapColor, vec3(plaguedAo), noiseHash); // alter the AO map for plagued values
-       #ifdef SEPARATE_TEXCOORD
-        #ifdef AFFLICTIONTEXTURE
-    //      lightMapColor = texture2D(m_AfflictionTexture, texCoord2).rgb;
-          #endif
-       #else
-        #ifdef AFFLICTIONTEXTURE
-    //      lightMapColor = texture2D(m_AfflictionTexture, texCoord).rgb;
-          #endif
-       #endif
- //      #ifdef AO_MAP
-         lightMapColor.gb = lightMapColor.rr;
-         ao = lightMapColor * 1.4;
-         ao = max(ao, 1.0);
-     //  #else
-    //     gl_FragColor.rgb += diffuseColor.rgb * lightMapColor;
-   //    #endif
-       specularColor.rgb *= lightMapColor;
- //   #endif
     
-  //SUN EXPOSURE AND TIME OF DAY - even though ambient lighting support day/night brightness scaling,
-  //the timeOfDayScale will not affect anything as long as probeColor is not defined
-    float factoredTimeOfDayScale = timeOfDayScale;
+    ao = alterAfflictionAo(afflictionValue, ao, vec3(afflictionAo), noiseHash); // alter the AO value based on afflicitionAo value
+    
+    ao.rgb = ao.rrr;
+    specularColor.rgb *= ao;
+ 
+ 
+  //finalLightingScale ACCOUNTS FOR SUN EXPOSURE FOR INDOOR AND SHADED AREAS OUT OF THE SUN'S FULL LIGHTING.
+    float finalLightingScale = 1.0; 
     #ifdef STATIC_SUN_INTENSITY
-        indoorSunLightExposure = m_StaticSunIntensity;
+        indoorSunLightExposure = m_StaticSunIntensity; //single float value to indicate percentage of
+                           //sunlight hitting the model (only works for small models or models with 100% consistent sunlighting)
     #endif
     #ifdef USE_VERTEX_COLORS_AS_SUN_INTENSITY
-        indoorSunLightExposure = vertColors.r * indoorSunLightExposure;             //use R channel of vertexColors... *^.
-        
-    #endif
+        indoorSunLightExposure = vertColors.r * indoorSunLightExposure;      //use R channel of vertexColors for..       
+    #endif 
+                                                               // similar purpose as above... *^.  
+                                                             //but uses r channel vert colors like an AO map specifically
+                                                                 //for sunlight (solution for scaling lighting for indoor
+                                                                  // and shadey/dimly lit models, especially big ones)
     brightestPointLight = 0.0;
     
     
-    factoredTimeOfDayScale *= indoorSunLightExposure;  //indoor sun-light exposure is scaled by time of day's brightness as well..
-
+    finalLightingScale *= indoorSunLightExposure; 
+     
     float ndotv = max( dot( normal, viewDir ),0.0);
     for( int i = 0;i < NB_LIGHTS; i+=3){
         vec4 lightColor = g_LightData[i];
@@ -1000,12 +987,12 @@ plaguedGlowColor = vec4(0);
         vec3 directDiffuse;
         vec3 directSpecular;
         
-         float hdotv = PBR_ComputeDirectLight(normal, lightDir.xyz, viewDir,
+        float hdotv = PBR_ComputeDirectLight(normal, lightDir.xyz, viewDir,
                             lightColor.rgb, fZero, Roughness, ndotv,
                             directDiffuse,  directSpecular);
 
         vec3 directLighting = diffuseColor.rgb *directDiffuse + directSpecular;
-        
+            
      //   #if defined(USE_VERTEX_COLORS_AS_SUN_INTENSITY) || defined(STATIC_SUN_INTENSITY)
             
             if(fallOff == 1.0){
@@ -1025,23 +1012,23 @@ plaguedGlowColor = vec4(0);
      
     }
     
+    
     float minVertLighting;
     #ifdef BRIGHTEN_INDOOR_SHADOWS
-        minVertLighting = 0.0833; //brighten shadows so that near pitch-dark caves which are naturally covered with DL shadows are not way too dark compared to when shadows are off
+        minVertLighting = 0.0833; //brighten shadows so that caves which are naturally covered from the DL shadows are not way too dark compared to when shadows are off
     #else
         minVertLighting = 0.0533;
     
     #endif
     
-    factoredTimeOfDayScale = max(factoredTimeOfDayScale, brightestPointLight);
+    finalLightingScale = max(finalLightingScale, brightestPointLight);
     
-    factoredTimeOfDayScale = max(factoredTimeOfDayScale, minVertLighting); //essentially just the vertColors.r (aka indoor liht exposure) multiplied by the time of day scale.
+    finalLightingScale = max(finalLightingScale, minVertLighting); //essentially just the vertColors.r (aka indoor liht exposure) multiplied by the time of day scale.
     
-    
+    //IMPORTANT NOTE: You used to multiply finalLightingScale by the indirectLighting value, and need to do that here still
+    //no need for anymore time of day code (also remove probe color scale ) as thats in ambient light now.
 
-    
-
-   // #if NB_PROBES >= 1
+    #if NB_PROBES >= 1
         vec3 color1 = vec3(0.0);
         vec3 color2 = vec3(0.0);
         vec3 color3 = vec3(0.0);
@@ -1057,7 +1044,7 @@ plaguedGlowColor = vec4(0);
             float ndf3 = renderProbe(viewDir, wPosition, normal, norm, Roughness, diffuseColor, specularColor, ndotv, ao, g_LightProbeData3, g_ShCoeffs3, g_PrefEnvMap3, color3);
         #endif
 
-         #if NB_PROBES >= 2
+        #if NB_PROBES >= 2
             float invNdf =  max(1.0 - ndf,0.0);
             float invNdf2 =  max(1.0 - ndf2,0.0);
             float sumNdf = ndf + ndf2;
@@ -1078,19 +1065,24 @@ plaguedGlowColor = vec4(0);
             weight2 /= weightSum;
             weight3 /= weightSum;
         #endif
-        
+
         #ifdef USE_AMBIENT_LIGHT
             color1.rgb *= g_AmbientLightColor.rgb;
             color2.rgb *= g_AmbientLightColor.rgb;
             color3.rgb *= g_AmbientLightColor.rgb;
         #endif
+
+// multiply probes by the finalLightingScale, as determined by pixel's 
+// sunlightExposure and adjusted for nearby point/spot lights
+        color1.rgb *= finalLightingScale;
+        color2.rgb *= finalLightingScale;
+        color3.rgb *= finalLightingScale;
+        
         
         gl_FragColor.rgb += color1 * clamp(weight1,0.0,1.0) + color2 * clamp(weight2,0.0,1.0) + color3 * clamp(weight3,0.0,1.0);
 
-
-     //   gl_FragColor.rgb = vec3(1.0);
- //   #endif
- 
+    #endif
+    
     #if defined(EMISSIVE) || defined (EMISSIVEMAP)
         #ifdef EMISSIVEMAP
             emissive = texture2D(m_EmissiveMap, texCoord);
@@ -1105,10 +1097,15 @@ plaguedGlowColor = vec4(0);
     
     #endif
 
-    gl_FragColor += plaguedGlowColor * pow(plaguedValue * 1.3, plaguedGlowColor.a) * (plaguedValue *1.5);
+    gl_FragColor += emissive * pow(emissiveIntensity * 1.3, emissive.a) * (emissiveIntensity *1.5);
 
 
-    // add the fog after the lighting for pbr
+   //  gl_FragColor.rgb = afflictionVector.rgb;
+   
+   
+   
+           // add fog after the lighting because shadows will cause the fog to darken
+    // which just results in the geometry looking like it's changed color
     #ifdef USE_FOG
         #ifdef FOG_LINEAR
             gl_FragColor = getFogLinear(gl_FragColor, m_FogColor, m_LinearFog.x, m_LinearFog.y, fogDistance);
@@ -1121,9 +1118,36 @@ plaguedGlowColor = vec4(0);
         #endif
     #endif 
     
+    
+    #ifdef DEBUG_VALUES_MODE
+        if(m_DebugValuesMode == 0){
+                gl_FragColor.rgb = vec3(albedo);
+
+        }
+        else if(m_DebugValuesMode == 1){
+                gl_FragColor.rgb = vec3(normal);
+
+        }
+        else if(m_DebugValuesMode == 2){
+                gl_FragColor.rgb = vec3(Roughness);
+
+        }
+        else if(m_DebugValuesMode == 3){
+                gl_FragColor.rgb = vec3(Metallic);
+
+        }
+        else if(m_DebugValuesMode == 4){
+                gl_FragColor.rgb = ao.rgb;
+
+        }
+        else if(m_DebugValuesMode == 5){
+          //      gl_FragColor.rgb = vec3(Roughness);
+
+        }
+    #endif
+    
+    
 
 
-    gl_FragColor.a = 1.0;
-
-
+ //   gl_FragColor.a = 1.0;
 }
