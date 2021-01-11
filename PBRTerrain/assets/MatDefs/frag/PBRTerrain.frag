@@ -887,11 +887,11 @@ float plaguedEmissiveIntensity = 0.0;
 vec4 plaguedGlowColor = vec4(0.87, 0.95, 0.1, 1.0);
 
     noiseHash = getStaticNoiseVar0(wPosition, plaguedValue);
-    Roughness = alterPlaguedRoughness(plaguedValue, Roughness, plaguedRoughness, noiseHash * plaguedAlbedo.a);
-    Metallic = alterPlaguedMetallic(plaguedValue, Metallic,  plaguedMetallic, noiseHash * plaguedAlbedo.a);//use the alpha channel of albedo map to alter opcaity for the matching plagued normals, roughness, and metalicness at each pixel
-    albedo = alterPlaguedColor(plaguedValue, albedo, plaguedAlbedo, noiseHash * plaguedAlbedo.a);
-    normal = alterPlaguedNormalsForTerrain(plaguedValue, normal, plaguedNormal, noiseHash * plaguedAlbedo.a, wNormal);
-    plaguedGlowColor = alterPlaguedGlow(plaguedValue, plaguedGlowColor, noiseHash);
+    Roughness = alterAfflictionRoughness(plaguedValue, Roughness, plaguedRoughness, noiseHash * plaguedAlbedo.a);
+    Metallic = alterAfflictionMetallic(plaguedValue, Metallic,  plaguedMetallic, noiseHash * plaguedAlbedo.a);//use the alpha channel of albedo map to alter opcaity for the matching plagued normals, roughness, and metalicness at each pixel
+    albedo = alterAfflictionColor(plaguedValue, albedo, plaguedAlbedo, noiseHash * plaguedAlbedo.a);
+    normal = alterAfflictionNormalsForTerrain(plaguedValue, normal, plaguedNormal, noiseHash * plaguedAlbedo.a, wNormal);
+    plaguedGlowColor = alterAfflictionGlow(plaguedValue, plaguedGlowColor, noiseHash);
 
 
 
@@ -941,7 +941,7 @@ plaguedGlowColor = vec4(0);
 
  //   #ifdef LIGHTMAP
        vec3 lightMapColor = vec3(1.0);//vec3(0.8142); 
-       lightMapColor = alterPlaguedAo(plaguedValue, lightMapColor, vec3(plaguedAo), noiseHash); // alter the AO map for plagued values
+       lightMapColor = alterAfflictionAo(plaguedValue, lightMapColor, vec3(plaguedAo), noiseHash); // alter the AO map for plagued values
        #ifdef SEPARATE_TEXCOORD
         #ifdef AFFLICTIONTEXTURE
     //      lightMapColor = texture2D(m_AfflictionTexture, texCoord2).rgb;
