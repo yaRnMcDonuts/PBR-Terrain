@@ -266,6 +266,9 @@ MaterialDef Advanced PBR AfflictedTerrain {
         Boolean UseVertexColor
 
         Boolean BackfaceShadows : false
+
+        // Alpha threshold for fragment discarding
+        Float AlphaDiscardThreshold (AlphaTestFallOff)
     }
 
     Technique {
@@ -299,6 +302,8 @@ MaterialDef Advanced PBR AfflictedTerrain {
             NORMAL_TYPE: NormalType
 
             TRI_PLANAR_MAPPING : useTriPlanarMapping
+
+            DISCARD_ALPHA : AlphaDiscardThreshold
 
             ALPHAMAP : AlphaMap
             ALPHAMAP_1 : AlphaMap_1
@@ -363,5 +368,69 @@ MaterialDef Advanced PBR AfflictedTerrain {
 
         }
     }
+
+
+    Technique PreShadow {
+
+        VertexShader GLSL100 GLSL150 :   Common/MatDefs/Shadow/PreShadow.vert
+        FragmentShader GLSL100 GLSL150 : Common/MatDefs/Shadow/PreShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldViewMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+
+        Defines {
+            DISCARD_ALPHA : AlphaDiscardThreshold
+            NUM_BONES : NumberOfBones
+            INSTANCING : UseInstancing
+        }
+
+        ForcedRenderState {
+            FaceCull Off
+            DepthTest On
+            DepthWrite On
+            PolyOffset 5 3
+            ColorWrite Off
+        }
+
+    }
+
+
+    Technique PostShadow{
+        VertexShader GLSL100 GLSL150:   Common/MatDefs/Shadow/PostShadow.vert
+        FragmentShader GLSL100 GLSL150: Common/MatDefs/Shadow/PostShadow.frag
+
+        WorldParameters {
+            WorldViewProjectionMatrix
+            WorldMatrix
+            ViewProjectionMatrix
+            ViewMatrix
+        }
+
+        Defines {
+            HARDWARE_SHADOWS : HardwareShadows
+            FILTER_MODE : FilterMode
+            PCFEDGE : PCFEdge
+            DISCARD_ALPHA : AlphaDiscardThreshold           
+            SHADOWMAP_SIZE : ShadowMapSize
+            FADE : FadeInfo
+            PSSM : Splits
+            POINTLIGHT : LightViewProjectionMatrix5
+            NUM_BONES : NumberOfBones
+            INSTANCING : UseInstancing
+            BACKFACE_SHADOWS: BackfaceShadows
+        }
+
+        ForcedRenderState {
+            Blend Modulate
+            DepthWrite Off   
+            PolyOffset -0.1 0  
+        }
+    }
+    
+
     
 }

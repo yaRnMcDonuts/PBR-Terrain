@@ -1,5 +1,5 @@
 // NOTE: Doesn't support OpenGL1
-MaterialDef PBR Terrain {
+MaterialDef Afflicted PBR Terrain {
 
     MaterialParameters {
 
@@ -262,6 +262,9 @@ MaterialDef PBR Terrain {
         Vector2 LinearFog
         Float ExpFog
         Float ExpSqFog
+
+        // Alpha threshold for fragment discarding
+        Float AlphaDiscardThreshold (AlphaTestFallOff)
     }
 
     Technique {
@@ -286,7 +289,7 @@ MaterialDef PBR Terrain {
 
             PARALLAXMAPPING : parallaxMapping
 
-            EMISSIVEMAP : EmissiveMap
+
             SPECGLOSSPIPELINE : SpecularMap
                 
             TILELOCATION : TileLocation
@@ -304,6 +307,8 @@ MaterialDef PBR Terrain {
             STATIC_SUN_INTENSITY : StaticSunIntensity
             BRIGHTEN_INDOOR_SHADOWS : BrightenIndoorShadows
 
+
+            DISCARD_ALPHA : AlphaDiscardThreshold
 
             USE_FOG : UseFog
             FOG_LINEAR : LinearFog
@@ -393,41 +398,8 @@ MaterialDef PBR Terrain {
 
 
     Technique PostShadow{
-        VertexShader GLSL150:   Common/MatDefs/Shadow/PostShadow.vert
-        FragmentShader GLSL150: Common/MatDefs/Shadow/PostShadow.frag
-
-        WorldParameters {
-            WorldViewProjectionMatrix
-            WorldMatrix
-            ViewProjectionMatrix
-            ViewMatrix
-        }
-
-        Defines {
-            HARDWARE_SHADOWS : HardwareShadows
-            FILTER_MODE : FilterMode
-            PCFEDGE : PCFEdge
-            DISCARD_ALPHA : AlphaDiscardThreshold           
-            SHADOWMAP_SIZE : ShadowMapSize
-            SHADOWMAP_SIZE : ShadowMapSize
-            FADE : FadeInfo
-            PSSM : Splits
-            POINTLIGHT : LightViewProjectionMatrix5
-            NUM_BONES : NumberOfBones
-            INSTANCING : UseInstancing
-            BACKFACE_SHADOWS: BackfaceShadows
-        }
-
-        ForcedRenderState {
-            Blend Modulate
-            DepthWrite Off                 
-            PolyOffset -0.1 0
-        }
-    }
-
-    Technique PostShadow{
-        VertexShader GLSL100:   Common/MatDefs/Shadow/PostShadow.vert
-        FragmentShader GLSL100: Common/MatDefs/Shadow/PostShadow.frag
+        VertexShader GLSL100 GLSL150:   Common/MatDefs/Shadow/PostShadow.vert
+        FragmentShader GLSL100 GLSL150: Common/MatDefs/Shadow/PostShadow.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
