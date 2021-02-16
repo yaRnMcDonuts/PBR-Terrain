@@ -271,8 +271,8 @@ MaterialDef Afflicted PBR Terrain {
 
         LightMode SinglePassAndImageBased
 
-        VertexShader  GLSL150:   MatDefs/vert/AfflictedPBRTerrain.vert
-        FragmentShader GLSL150: MatDefs/frag/AfflictedPBRTerrain.frag
+        VertexShader GLSL100 GLSL130 GLSL150:   MatDefs/vert/AfflictedPBRTerrain.vert
+        FragmentShader GLSL100 GLSL130 GLSL150: MatDefs/frag/AfflictedPBRTerrain.frag
 
         WorldParameters {
             WorldViewProjectionMatrix
@@ -286,11 +286,6 @@ MaterialDef Afflicted PBR Terrain {
         }
 
         Defines {
-
-            PARALLAXMAPPING : parallaxMapping
-
-
-            SPECGLOSSPIPELINE : SpecularMap
                 
             TILELOCATION : TileLocation
             AFFLICTIONTEXTURE : AfflictionTexture
@@ -301,12 +296,9 @@ MaterialDef Afflicted PBR Terrain {
             AFFLICTIONEMISSIVEMAP : PlaguedEmissiveMap
 
 
-            PROBE_COLOR : ProbeColor
-
             USE_VERTEX_COLORS_AS_SUN_INTENSITY : UseVertexColorsAsSunIntensity
             STATIC_SUN_INTENSITY : StaticSunIntensity
             BRIGHTEN_INDOOR_SHADOWS : BrightenIndoorShadows
-
 
             DISCARD_ALPHA : AlphaDiscardThreshold
 
@@ -314,7 +306,6 @@ MaterialDef Afflicted PBR Terrain {
             FOG_LINEAR : LinearFog
             FOG_EXP : ExpFog
             FOG_EXPSQ : ExpSqFog
-
 
             NORMAL_TYPE: NormalType
 
@@ -345,7 +336,7 @@ MaterialDef Afflicted PBR Terrain {
             NORMALMAP_9 : NormalMap_9
             NORMALMAP_10 : NormalMap_10
             NORMALMAP_11 : NormalMap_11
-            SPECULARMAP : SpecularMap
+
             ALPHAMAP : AlphaMap
             ALPHAMAP_1 : AlphaMap_1
             ALPHAMAP_2 : AlphaMap_2

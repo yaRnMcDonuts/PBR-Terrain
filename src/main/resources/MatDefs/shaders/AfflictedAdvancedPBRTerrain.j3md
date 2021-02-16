@@ -309,6 +309,10 @@ MaterialDef Advanced PBR AfflictedTerrain {
             ALPHAMAP_1 : AlphaMap_1
             ALPHAMAP_2 : AlphaMap_2
 
+            USE_FOG : UseFog
+            FOG_LINEAR : LinearFog
+            FOG_EXP : ExpFog
+            FOG_EXPSQ : ExpSqFog
 
             ALBEDOMAP_0 : AlbedoMap_0
             ALBEDOMAP_1 : AlbedoMap_1
