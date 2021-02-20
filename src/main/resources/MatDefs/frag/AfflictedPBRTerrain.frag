@@ -48,15 +48,8 @@ varying vec3 wPosition;
   uniform sampler2D m_GlossMap;
 #endif
 
-#ifdef LIGHTMAP
-  uniform sampler2D m_LightMap;
-#endif
 
 varying vec3 vNormal;
-
-//#if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7) || defined(AFFLICTIONNORMALMAP)
-    varying vec4 wTangent;
-//#endif
 
 
 varying vec2 texCoord;
@@ -138,9 +131,6 @@ uniform float m_Metallic_9;
 uniform float m_Metallic_10;
 uniform float m_Metallic_11;
 
-
-
-   mat3 tbnMat;
 
 #ifdef AFFLICTIONTEXTURE
     uniform sampler2D m_AfflictionTexture;
@@ -309,12 +299,10 @@ vec4 afflictionVector;
 
   varying vec3 wNormal;
 
-//ifdef TRI_PLANAR_MAPPING
+#ifdef TRI_PLANAR_MAPPING
   varying vec4 wVertex;
-
-
  
-//#endif
+#endif
 
 vec2 coord;
 vec4 albedo;
@@ -666,9 +654,6 @@ vec4 calculateAlbedoBlend(in vec2 texCoord) {
 float brightestPointLight = 0.0;
 
 
-#ifdef PROBE_COLOR 
-    uniform vec4 m_ProbeColor; //not necissary for day/night in 3.3 now that ambient light scales probe as well
-#endif
 
 void main(){
     
@@ -682,13 +667,6 @@ void main(){
     
     float indoorSunLightExposure = 1.0;//scale this to match R channel of vertex colors
 
-    vec3 probeColorMult = vec3(1.0);
-    float timeOfDayScale = 1.0;
-    #ifdef PROBE_COLOR
-            timeOfDayScale = m_ProbeColor.w; // time of day is stored in alpha value of the ProbeColor vec4. this way the rgb vec3 can be used for scaling probe color
-            probeColorMult = m_ProbeColor.xyz;
-            
-     #endif
      
     
     
@@ -696,15 +674,7 @@ void main(){
 
     vec3 norm = normalize(wNormal);
     normal.rgb = norm.rgb;
- //   norm = vec3(0.5, 0.5, 1.0);
- //   #if defined(NORMALMAP_0) || defined(PARALLAXMAP) || defined(AFFLICTIONNORMALMAP)
-        vec3 tan = normalize(wTangent.xyz);
-   //     tbnMat = mat3(tan, wTangent.w * cross( (wNormal), (tan)), norm);
-
-   //   mat3 tbnMat = mat3(tan, wTangent.w * cross( (norm), (tan)), norm);
-   
-
- //   #endif
+    
 
     afflictionVector = vec4(1.0, 0.0, 1.0, 0.0);
     #ifdef AFFLICTIONTEXTURE
@@ -858,8 +828,6 @@ vec3 afflictionNormal;
     #endif
 
 
-//   afflictionNormal = normalize((afflictionNormal.xyz * vec3(2.0) - vec3(1.0)));
-//    afflictionNormal = normalize(tbnMat * afflictionNormal);
 #else
     afflictionNormal = wNormal; 
 

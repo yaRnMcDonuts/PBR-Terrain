@@ -2,38 +2,25 @@
 MaterialDef Advanced PBR AfflictedTerrain {
 
     MaterialParameters {
+
     
+        Boolean UseVertexColorsAsSunIntensity //set true to make the vertex color's R channel how exposed a vertex is to the sun
+        Float StaticSunIntensity              //used for setting the sun exposure value for a whole material
+                                             //these are usually generated at run time or setup in a level editor per-geometry, so that models indooes can have the DirectionalLight dimmed accordingly.
 
-              Float NormalType : -1.0
+        Boolean BrightenIndoorShadows  //set true if shadows are enabled and indoor areas withour full sun exposure are too dark compared to when shadows are turned off in settings
 
-
-
-        Float ParallaxHeight : 0.005
-
-        // The emissive color of the object
-        Color Emissive        
-        // the emissive power
-        Float EmissivePower : 3.5      
-        // the emissive intensity
-        Float EmissiveIntensity : 2.3
-
-        // Specular/gloss map
-        Texture2D MetallicMap -LINEAR
-        
   
         TextureArray AlbedoTextureArray
         TextureArray NormalParallaxTextureArray -LINEAR
         TextureArray MetallicRoughnessAoEiTextureArray -LINEAR
 
-        
 
-        // Set to Use Lightmap
-        Texture2D LightMap
 
         Int PlaguedMapScale : 8
         Float AfflictionRoughnessValue : 1.0
         Float AfflictionMetallicValue : 0.0
-        Float AfflictionEmissiveValue : 0.0 //note that this is simplified into one value, rather than 2 with power and intensity like the regular pbr values.
+        Float AfflictionEmissiveValue : 0.0   //note that this is simplified into one value, rather than 2 with power and intensity like the regular pbr values.
 
 
 
@@ -178,23 +165,11 @@ MaterialDef Advanced PBR AfflictedTerrain {
         // use tri-planar mapping
         Boolean useTriPlanarMapping
 
-        // Use ward specular instead of phong
-        Boolean WardIso
-
-
-        // Albedo color
-        Color Albedo
-
-
-
-
-
         // Texture that specifies alpha values
         Texture2D AlphaMap -LINEAR
         Texture2D AlphaMap_1 -LINEAR
         Texture2D AlphaMap_2 -LINEAR
 
-        // For Spec gloss pipeline
         Boolean UseSpecGloss
         Texture2D SpecularMap
         Texture2D GlossinessMap
@@ -213,18 +188,6 @@ MaterialDef Advanced PBR AfflictedTerrain {
         //integrate BRDF map for indirect Lighting
         Texture2D IntegrateBRDF -LINEAR
 
-        //Set to true is parallax map is stored in the alpha channel of the normal map
-        Boolean PackedNormalParallax : true
-
-        //Sets the relief height for parallax mapping
-        Float ParallaxHeight : 0.05       
-
-        //Set to true to activate Steep Parallax mapping
-        Boolean SteepParallax
-
-
-        // Set to use TexCoord2 for the lightmap sampling
-        Boolean SeparateTexCoord
 
         //shadows
         Int FilterMode
@@ -267,6 +230,12 @@ MaterialDef Advanced PBR AfflictedTerrain {
 
         Boolean BackfaceShadows : false
 
+        Boolean UseFog
+        Color FogColor
+        Vector2 LinearFog
+        Float ExpFog
+        Float ExpSqFog
+
         // Alpha threshold for fragment discarding
         Float AlphaDiscardThreshold (AlphaTestFallOff)
     }
@@ -298,8 +267,6 @@ MaterialDef Advanced PBR AfflictedTerrain {
             AFFLICTIONEMISSIVEMAP : PlaguedEmissiveMap
 
             HORIZON_FADE: HorizonFade
-
-            NORMAL_TYPE: NormalType
 
             TRI_PLANAR_MAPPING : useTriPlanarMapping
 
@@ -352,21 +319,6 @@ MaterialDef Advanced PBR AfflictedTerrain {
             METALLICROUGHNESSMAP_9 : MetallicRoughnessMap_9
             METALLICROUGHNESSMAP_10 : MetallicRoughnessMap_10
             METALLICROUGHNESSMAP_11 : MetallicRoughnessMap_11
-
-
-
-            PARALLAXHEIGHT_0 : ParallaxHeight_0
-            PARALLAXHEIGHT_1 : ParallaxHeight_1
-            PARALLAXHEIGHT_2 : ParallaxHeight_2
-            PARALLAXHEIGHT_3 : ParallaxHeight_3
-            PARALLAXHEIGHT_4 : ParallaxHeight_4
-            PARALLAXHEIGHT_5 : ParallaxHeight_5
-            PARALLAXHEIGHT_6 : ParallaxHeight_6
-            PARALLAXHEIGHT_7 : ParallaxHeight_7
-            PARALLAXHEIGHT_8 : ParallaxHeight_8
-            PARALLAXHEIGHT_9 : ParallaxHeight_9
-            PARALLAXHEIGHT_10 : ParallaxHeight_10
-            PARALLAXHEIGHT_11 : ParallaxHeight_11
 
             DEBUG_VALUES_MODE : DebugValuesMode
 

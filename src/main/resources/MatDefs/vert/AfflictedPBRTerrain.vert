@@ -18,11 +18,6 @@ varying vec3 wNormal;
 #endif
 
 
-#if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(AFFLICTIONNORMALMAP)
-    attribute vec4 inTangent;
-    varying vec4 wTangent;
-#endif
-
 void main(){
     vec4 modelSpacePos = vec4(inPosition, 1.0);
 
@@ -34,13 +29,10 @@ void main(){
     
     
     wNormal  = normalize(TransformWorldNormal(inNormal));
-   #if  defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7)  || defined(AFFLICTIONNORMALMAP)
-        wTangent = vec4(TransformWorldNormal(inTangent.xyz),inTangent.w);
-    #endif
+
 
     #ifdef TRI_PLANAR_MAPPING
-       wVertex = vec4(inPosition,0.0);
-       wNormal = inNormal;
+       wVertex = vec4(inPosition,0.0);       
     #endif
     
     

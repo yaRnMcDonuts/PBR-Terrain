@@ -57,9 +57,6 @@ varying vec3 wPosition;
 varying vec3 vNormal;
 
 
-#if defined(NORMALMAP_0) || defined(NORMALMAP_1) || defined(NORMALMAP_2) || defined(NORMALMAP_3) || defined(NORMALMAP_4) || defined(NORMALMAP_5) || defined(NORMALMAP_6) || defined(NORMALMAP_7) || defined(AFFLICTIONNORMALMAP)
-    varying vec4 wTangent;
-#endif
 
 
 varying vec2 texCoord;
@@ -144,7 +141,7 @@ uniform sampler2DArray m_NormalParallaxTextureArray;
 uniform sampler2DArray m_MetallicRoughnessAoEiTextureArray;
 
 
-mat3 tbnMat;
+// mat3 tbnMat;
 
 
 #ifdef ALPHAMAP
@@ -437,17 +434,12 @@ vec4 afflictionVector;
 
   varying vec3 wNormal;
 
-//ifdef TRI_PLANAR_MAPPING
+#ifdef TRI_PLANAR_MAPPING
   varying vec4 wVertex;
 
-
+#endif
 
 vec3 viewDir;
-
-
- 
-//#endif
-
 
 
 
@@ -574,19 +566,19 @@ int afflictionMode = 1;
 
 void calculateParallax(inout vec2 parallaxTexCoord, in float parallaxHeight, in float intensity, in int texIndex) {
 //    #ifdef PARALLAX_OCCLUSION
-        #ifdef PARALLAX_LOD_DISTANCE  
-            if(camDist < m_ParallaxLODDistance && intensity > 0.2){
-                vec3 vViewDir =  viewDir * tbnMat;
-                Parallax_initFor(vViewDir,parallaxHeight);
-                Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
-            }
-        #else
-            if(intensity > 0.2){
-                vec3 vViewDir =  viewDir * tbnMat;
-                Parallax_initFor(vViewDir,parallaxHeight);
-                Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
-            }
-        #endif
+//        #ifdef PARALLAX_LOD_DISTANCE  
+//            if(camDist < m_ParallaxLODDistance && intensity > 0.2){
+//                vec3 vViewDir =  viewDir * tbnMat;
+//                Parallax_initFor(vViewDir,parallaxHeight);
+//                Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
+//            }
+//        #else
+//            if(intensity > 0.2){
+//                vec3 vViewDir =  viewDir * tbnMat;
+//                Parallax_initFor(vViewDir,parallaxHeight);
+//                Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
+//            }
+//        #endif
  //   #else
 //      #ifdef STEEP_PARALLAX
            //parallax map is stored in the alpha channel of the normal map         
@@ -601,19 +593,19 @@ void calculateParallax(inout vec2 parallaxTexCoord, in float parallaxHeight, in 
 
 void calculateTriParallax(inout vec2 parallaxTexCoord, in float parallaxHeight, in float intensity, in int texIndex) {
 //    #ifdef PARALLAX_OCCLUSION
-        #ifdef PARALLAX_LOD_DISTANCE  
-            if(camDist < m_ParallaxLODDistance && intensity > 0.2){
-                vec3 vViewDir =  viewDir * tbnMat;
-                Parallax_initFor(vViewDir,parallaxHeight);
-                Tri_Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
-            }
-        #else
-            if(intensity > 0.2){
-                vec3 vViewDir =  viewDir * tbnMat;
-                Parallax_initFor(vViewDir,parallaxHeight);
-                Tri_Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
-            }
-        #endif
+//        #ifdef PARALLAX_LOD_DISTANCE  
+//            if(camDist < m_ParallaxLODDistance && intensity > 0.2){
+//                vec3 vViewDir =  viewDir * tbnMat;
+//                Parallax_initFor(vViewDir,parallaxHeight);
+//                Tri_Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
+//            }
+//        #else
+//            if(intensity > 0.2){
+//                vec3 vViewDir =  viewDir * tbnMat;
+//                Parallax_initFor(vViewDir,parallaxHeight);
+//                Tri_Parallax_TextureArray_displaceCoords(parallaxTexCoord, m_NormalParallaxTextureArray, texIndex);
+//            }
+//        #endif
  //   #else
 //      #ifdef STEEP_PARALLAX
            //parallax map is stored in the alpha channel of the normal map         
@@ -1098,9 +1090,6 @@ vec4 calculateAlbedoBlend(in vec2 texCoord) {
 
 float brightestPointLight = 0.0;
 
-#ifdef PROBE_COLOR
-    uniform vec4 m_ProbeColor;
-#endif
 
 void main(){    
     
@@ -1113,13 +1102,6 @@ void main(){
 
     norm  = normalize(wNormal);
     normal = norm;
- //   norm = vec3(0.5, 0.5, 1.0);
- //   #if defined(NORMALMAP_0) || defined(PARALLAXMAP) || defined(AFFLICTIONNORMALMAP) 
-        vec3 tan = normalize(wTangent.xyz);
-   //     tbnMat = mat3(tan, wTangent.w * cross( (wNormal), (tan)), norm);
-
-    tbnMat = mat3(tan, wTangent.w * cross( (norm), (tan)), norm);
-   
 
 //    #endif
 
@@ -1272,9 +1254,6 @@ vec3 afflictionNormal;
         afflictionNormal = texture2D(m_PlaguedNormalMap , newScaledCoords).rgb;
     #endif
 
-
-//    afflictionNormal = normalize((afflictionNormal.xyz * vec3(2.0) - vec3(1.0)));
-//    afflictionNormal = normalize(tbnMat * afflictionNormal);
 #else
     afflictionNormal = norm; 
 

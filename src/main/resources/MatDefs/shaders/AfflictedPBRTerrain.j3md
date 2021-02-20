@@ -3,39 +3,13 @@ MaterialDef Afflicted PBR Terrain {
 
     MaterialParameters {
 
-    
-    
 
-        Float NormalType : -1.0
+        Boolean UseVertexColorsAsSunIntensity //set true to make the vertex color's R channel how exposed a vertex is to the sun
+        Float StaticSunIntensity              //used for setting the sun exposure value for a whole material
+                                             //these are usually generated at run time or setup in a level editor per-geometry, so that models indooes can have the DirectionalLight dimmed accordingly.
 
+        Boolean BrightenIndoorShadows  //set true if shadows are enabled and indoor areas withour full sun exposure are too dark compared to when shadows are turned off in settings
 
-        Boolean UseVertexColorsAsSunIntensity
-        Float StaticSunIntensity
-
-        Vector4 ProbeColor
-
-        Boolean BrightenIndoorShadows
-
-
-        // Use alpha channel of normal texture for parallax mapping;
-        Boolean parallaxMapping
-
-        Float ParallaxHeight : 0.005
-
-        // The emissive color of the object
-        Color Emissive        
-        // the emissive power
-        Float EmissivePower : 3.5      
-        // the emissive intensity
-        Float EmissiveIntensity : 2.3
-
-        // Specular/gloss map
-        Texture2D MetallicMap -LINEAR
-        
-  
-
-        // Set to Use Lightmap
-    Texture2D LightMap
 
         Int PlaguedMapScale : 8
 
@@ -51,7 +25,7 @@ MaterialDef Afflicted PBR Terrain {
 
         Color AfflictionEmissiveColor : 1.0 1.0 1.0 1.0
 
-
+        //used for decal mapping with afflictionMap, in order to convert world coords to tex coords so afflictionTexture accurately represents the world
         Float TileWidth : 0
         Vector3 TileLocation
 
@@ -99,15 +73,6 @@ MaterialDef Afflicted PBR Terrain {
 
         // use tri-planar mapping
         Boolean useTriPlanarMapping
-
-        // Use ward specular instead of phong
-        Boolean WardIso
-
-
-        // Albedo color
-        Color Albedo
-
-
 
         // Texture map #0
         Texture2D AlbedoMap_0
@@ -194,26 +159,6 @@ MaterialDef Afflicted PBR Terrain {
 
         //integrate BRDF map for indirect Lighting
         Texture2D IntegrateBRDF -LINEAR
-
-        // Parallax/height map
-        Texture2D ParallaxMap -LINEAR
-
-        //Set to true is parallax map is stored in the alpha channel of the normal map
-        Boolean PackedNormalParallax   
-
-        //Sets the relief height for parallax mapping
-        Float ParallaxHeight : 0.05       
-
-        //Set to true to activate Steep Parallax mapping
-        Boolean SteepParallax
-
-        // Set to Use Lightmap
-        Texture2D LightMap
-
-        // Set to use TexCoord2 for the lightmap sampling
-        Boolean SeparateTexCoord
-        // the light map is a gray scale ao map, on ly the r channel will be read.
-        Boolean LightMapAsAOMap
 
         //shadows
         Int FilterMode
@@ -306,8 +251,6 @@ MaterialDef Afflicted PBR Terrain {
             FOG_LINEAR : LinearFog
             FOG_EXP : ExpFog
             FOG_EXPSQ : ExpSqFog
-
-            NORMAL_TYPE: NormalType
 
             TRI_PLANAR_MAPPING : useTriPlanarMapping
 
