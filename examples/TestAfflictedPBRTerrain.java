@@ -144,10 +144,10 @@ public class TestPBRTerrain extends SimpleApplication {
         Texture normalMapRoad = assetManager.loadTexture("Textures/Terrain/splat/road_normal.png");
         normalMapRoad.setWrap(WrapMode.Repeat);
 //        matTerrain.setTexture("NormalMap_0", normalMapDirt);
-//        matTerrain.setTexture("NormalMap_1", normalMapPinkRock);
-//        matTerrain.setTexture("NormalMap_2", normalMapPinkRock);
-//        matTerrain.setTexture("NormalMap_4", normalMapGrass);
-//        matTerrain.setTexture("NormalMap_6", normalMapRoad);
+        matTerrain.setTexture("NormalMap_1", normalMapPinkRock);
+        matTerrain.setTexture("NormalMap_2", normalMapPinkRock);
+        matTerrain.setTexture("NormalMap_4", normalMapGrass);
+        matTerrain.setTexture("NormalMap_6", normalMapRoad);
 
         // CREATE HEIGHTMAP
         AbstractHeightMap heightmap = null;
