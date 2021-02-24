@@ -61,7 +61,6 @@ public class TestPBRTerrain extends SimpleApplication {
         
         
         matTerrain.setBoolean("useTriPlanarMapping", false);
-        matTerrain.setVector4("ProbeColor", new Vector4f(1, 1, 1, 1));
 
         // ALPHA map (for splat textures)
         matTerrain.setTexture("AlphaMap", assetManager.loadTexture("Textures/Terrain/splat/alpha1.png"));
