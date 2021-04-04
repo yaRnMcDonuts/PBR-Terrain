@@ -1,5 +1,5 @@
 
-# Important Notes: All future updates to these shaders will be included in JmonkeyEngine3's core library. If you are using the most recent version of JME3 after v.24, you will already have access to the latest stable version of both PBR Terrain shaders.
+# Important Notes: All future updates to these shaders will be included in JmonkeyEngine3's core library. If you are using the most recent version of JME3 after v 3.4 then you will already have access to the latest stable version of both PBR Terrain shaders.
 
 https://github.com/jMonkeyEngine/jmonkeyengine
 
